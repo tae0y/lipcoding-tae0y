@@ -1,0 +1,123 @@
+import { useState } from "react";
+import CaptureScreen from "./screens/CaptureScreen";
+import InboxScreen from "./screens/InboxScreen";
+import { useIdeas } from "./hooks/useIdeas";
+import { useUserState } from "./hooks/useUserState";
+import { useSuggestion } from "./hooks/useSuggestion";
+import { runResearch } from "./lib/api";
+
+type Screen = "capture" | "inbox";
+
+export default function App() {
+    const [screen, setScreen] = useState<Screen>("capture");
+    const [ideaText, setIdeaText] = useState("");
+    const [researchingId, setResearchingId] = useState<string | null>(null);
+
+    const {
+        inboxIdeas,
+        dumpIdeas,
+        submitting,
+        lastVerdict,
+        verdictError,
+        captureIdea,
+        reload: reloadIdeas,
+        loadError: ideasError,
+    } = useIdeas();
+
+    const {
+        userState,
+        setEmotion,
+        toggleCalendar,
+        addTodo,
+        removeTodo,
+        setSchedule,
+        error: userStateError,
+        reload: reloadUserState,
+    } = useUserState();
+
+    const {
+        suggestion,
+        loading: suggestionLoading,
+        decide,
+        error: suggestionError,
+        refresh: refreshSuggestion,
+    } = useSuggestion();
+
+    const connectionError = ideasError || userStateError || suggestionError;
+
+    const handleRetry = () => {
+        void reloadIdeas();
+        void reloadUserState();
+        void refreshSuggestion();
+    };
+
+    const handleSubmit = async () => {
+        const text = ideaText.trim();
+        if (!text) return;
+        await captureIdea(text);
+        setIdeaText("");
+    };
+
+    const handleRunResearch = async (ideaId: string) => {
+        setResearchingId(ideaId);
+        try {
+            await runResearch(ideaId);
+            void reloadIdeas();
+        } catch {
+            // silent — ideas will still show without research
+        } finally {
+            setResearchingId(null);
+        }
+    };
+
+    const banner = connectionError ? (
+        <div className="bg-red-50 text-red-700">
+            <div className="mx-auto flex max-w-[640px] items-center justify-between gap-3 px-4 py-2 text-sm">
+                <span>
+                    서버 연결이 불안정해요. 입력은 저장되며 일부 정보가 안 보일 수 있어요.
+                </span>
+                <button
+                    type="button"
+                    onClick={handleRetry}
+                    className="shrink-0 rounded-md border border-red-200 bg-white px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+                >
+                    다시 시도
+                </button>
+            </div>
+        </div>
+    ) : null;
+
+    return (
+        <>
+            {banner}
+            {screen === "capture" ? (
+                <CaptureScreen
+                    onNavigate={() => setScreen("inbox")}
+                    ideaText={ideaText}
+                    onIdeaTextChange={setIdeaText}
+                    onSubmit={handleSubmit}
+                    submitting={submitting}
+                    lastVerdict={lastVerdict}
+                    verdictError={verdictError}
+                    userState={userState}
+                    onEmotion={setEmotion}
+                    onToggleCalendar={toggleCalendar}
+                    onAddTodo={addTodo}
+                    onRemoveTodo={removeTodo}
+                    onSchedule={setSchedule}
+                />
+            ) : (
+                <InboxScreen
+                    onNavigate={() => setScreen("capture")}
+                    loading={suggestionLoading}
+                    suggestion={suggestion}
+                    onDecide={decide}
+                    inboxIdeas={inboxIdeas}
+                    dumpIdeas={dumpIdeas}
+                    onRunResearch={handleRunResearch}
+                    researchingId={researchingId}
+                />
+            )}
+        </>
+    );
+}
