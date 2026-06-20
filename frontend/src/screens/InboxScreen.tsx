@@ -3,6 +3,7 @@ import type {
     Screen,
     Suggestion,
     SuggestionDecision,
+    UserState,
 } from "../lib/types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -11,6 +12,12 @@ import { Skeleton } from "../components/ui/skeleton";
 import { WaitingProgress, RESEARCH_PHRASES } from "../components/WaitingProgress";
 import { TopNav } from "../components/TopNav";
 
+const EMOTION_LABEL: Record<string, string> = {
+    bad: "😞 기분 나쁨",
+    normal: "😐 기분 보통",
+    good: "😊 기분 좋음",
+};
+
 interface InboxScreenProps {
     onNavigate: (s: Screen) => void;
     loading: boolean;
@@ -18,6 +25,7 @@ interface InboxScreenProps {
     onDecide: (decision: SuggestionDecision) => void;
     inboxIdeas: Idea[];
     dumpIdeas: Idea[];
+    userState: UserState | null;
     onRunResearch?: (ideaId: string) => void;
     onDeleteIdea?: (id: string) => void;
     researchingId?: string | null;
@@ -51,6 +59,7 @@ export default function InboxScreen({
     onDecide,
     inboxIdeas,
     dumpIdeas,
+    userState,
     onRunResearch,
     onDeleteIdea,
     researchingId,
@@ -61,6 +70,17 @@ export default function InboxScreen({
             <TopNav active="inbox" onNavigate={onNavigate} />
 
             <main className="mx-auto max-w-[640px] px-4 py-8 space-y-12">
+                {userState && (
+                    <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white/70 px-4 py-2.5 text-sm backdrop-blur">
+                        <span className="font-medium text-neutral-500">현재 상태</span>
+                        <span className="mx-1 text-neutral-300">|</span>
+                        <span className="font-semibold text-neutral-800">{EMOTION_LABEL[userState.emotion]}</span>
+                        <span className="mx-1 text-neutral-300">·</span>
+                        <span className={userState.calendarBusy ? "text-rose-500 font-medium" : "text-emerald-600 font-medium"}>
+                            {userState.calendarBusy ? "📅 저녁 약속 있음" : "✅ 저녁 비었음"}
+                        </span>
+                    </div>
+                )}
                 <section className="space-y-3">
                     <div className="flex items-baseline justify-between border-b border-neutral-200 pb-2">
                         <div className="flex items-center gap-2">
@@ -80,25 +100,26 @@ export default function InboxScreen({
                         </Card>
                     ) : suggestion ? (
                         <Card className="border-transparent bg-white shadow-[0_12px_44px_-16px_rgba(99,102,241,0.45)] ring-1 ring-inset ring-indigo-200">
-                            <CardHeader>
-                                <CardTitle className="text-base">
+                            <CardHeader className="pb-2">
+                                <p className="text-xs font-medium uppercase tracking-widest text-indigo-400 mb-1">이번 주 AI 제안</p>
+                                <CardTitle className="text-2xl font-bold leading-snug text-neutral-900">
                                     {suggestion.idea?.text ?? suggestion.ideaId}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <ul className="space-y-2">
-                                    {REASON_ROWS.map(({ key, label }) => (
-                                        <li
-                                            key={key}
-                                            className="flex items-start justify-between gap-3 text-sm"
-                                        >
-                                            <span className="text-neutral-700">
-                                                {suggestion.reasons[key]}
-                                            </span>
-                                            <Badge>{label}</Badge>
-                                        </li>
-                                    ))}
-                                </ul>
+                            <CardContent className="space-y-5">
+                                <div className="space-y-1.5">
+                                    <p className="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">추천 근거</p>
+                                    <ul className="space-y-3">
+                                        {REASON_ROWS.map(({ key, label }) => (
+                                            <li key={key} className="flex items-start gap-3">
+                                                <Badge className="mt-0.5 shrink-0">{label}</Badge>
+                                                <span className="text-base font-medium text-neutral-800 leading-snug">
+                                                    {suggestion.reasons[key]}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                                 {suggestion.decision ? (
                                     <Badge>
                                         {DECISION_LABEL[suggestion.decision] ??

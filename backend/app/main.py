@@ -109,10 +109,10 @@ def health_ai() -> dict[str, object]:
 
 
 @app.post(f"{config.API_PREFIX}/ideas", response_model=Idea, status_code=201, tags=["ideas"])
-def create_idea(payload: IdeaCreateRequest) -> Idea:
+async def create_idea(payload: IdeaCreateRequest) -> Idea:
     """아이디어 캡처 + 입구 판정."""
     state = db.get_user_state()
-    status, dump_reason = judge_idea(payload.text, state)
+    status, dump_reason = await judge_idea(payload.text, state)
     idea = Idea(
         id=str(uuid.uuid4()),
         text=payload.text,

@@ -4,10 +4,10 @@ function cx(...parts: Array<string | undefined | false>): string {
     return parts.filter(Boolean).join(" ");
 }
 
-const TABS: Array<{ key: Screen; label: string }> = [
-    { key: "capture", label: "입력" },
-    { key: "inbox", label: "조회" },
-    { key: "settings", label: "설정" },
+const TABS: Array<{ key: Screen; label: string; sub: string }> = [
+    { key: "capture", label: "아이디어 담기", sub: "생각을 던지는 곳" },
+    { key: "inbox", label: "추천 · 인박스", sub: "제안과 목록 보기" },
+    { key: "settings", label: "설정", sub: "" },
 ];
 
 interface TopNavProps {
@@ -28,13 +28,18 @@ export function TopNav({ active, onNavigate }: TopNavProps) {
                             onClick={() => onNavigate(tab.key)}
                             aria-current={isActive ? "page" : undefined}
                             className={cx(
-                                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                                "rounded-lg px-3 py-1.5 text-left transition-colors",
                                 isActive
                                     ? "bg-neutral-900 text-white shadow-sm"
                                     : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900",
                             )}
                         >
-                            {tab.label}
+                            <span className="block text-sm font-semibold leading-tight">{tab.label}</span>
+                            {tab.sub && (
+                                <span className={cx("block text-[10px] leading-tight mt-0.5", isActive ? "text-neutral-300" : "text-neutral-400")}>
+                                    {tab.sub}
+                                </span>
+                            )}
                         </button>
                     );
                 })}

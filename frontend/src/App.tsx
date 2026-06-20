@@ -116,6 +116,7 @@ export default function App() {
                     onDecide={decide}
                     inboxIdeas={inboxIdeas}
                     dumpIdeas={dumpIdeas}
+                    userState={userState}
                     onRunResearch={handleRunResearch}
                     onDeleteIdea={deleteIdea}
                     researchingId={researchingId}

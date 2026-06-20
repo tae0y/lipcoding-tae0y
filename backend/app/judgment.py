@@ -110,7 +110,7 @@ async def _judge_with_sdk(text: str, state: UserState) -> tuple[IdeaStatus, Dump
     return status, dump_reason
 
 
-def judge_idea(text: str, state: UserState) -> tuple[IdeaStatus, DumpReason | None]:
+async def judge_idea(text: str, state: UserState) -> tuple[IdeaStatus, DumpReason | None]:
     """아이디어 텍스트와 현재 상태로 inbox/dump를 판정한다.
 
     Copilot SDK 에이전트가 2요소(정보 준비성 + 현재 여유)를 도구 호출로 평가.
@@ -119,7 +119,7 @@ def judge_idea(text: str, state: UserState) -> tuple[IdeaStatus, DumpReason | No
     if os.environ.get("SKIP_COPILOT_SDK") == "1":
         return _heuristic_judge(text, state)
     try:
-        return asyncio.run(_judge_with_sdk(text, state))
+        return await asyncio.wait_for(_judge_with_sdk(text, state), timeout=10.0)
     except Exception as exc:
         logger.warning("SDK 판정 실패, 휴리스틱 폴백: %s", exc)
         return _heuristic_judge(text, state)
