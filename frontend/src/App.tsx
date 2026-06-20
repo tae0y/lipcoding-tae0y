@@ -1,12 +1,12 @@
 import { useState } from "react";
 import CaptureScreen from "./screens/CaptureScreen";
 import InboxScreen from "./screens/InboxScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 import { useIdeas } from "./hooks/useIdeas";
 import { useUserState } from "./hooks/useUserState";
 import { useSuggestion } from "./hooks/useSuggestion";
 import { runResearchStream } from "./lib/api";
-
-type Screen = "capture" | "inbox";
+import type { Screen } from "./lib/types";
 
 export default function App() {
     const [screen, setScreen] = useState<Screen>("capture");
@@ -97,15 +97,20 @@ export default function App() {
             {banner}
             {screen === "capture" ? (
                 <CaptureScreen
-                    onNavigate={() => setScreen("inbox")}
+                    onNavigate={setScreen}
                     ideaText={ideaText}
                     onIdeaTextChange={setIdeaText}
                     onSubmit={handleSubmit}
                     submitting={submitting}
+                    userState={userState}
+                    onEmotion={setEmotion}
+                    onToggleCalendar={toggleCalendar}
+                    onAddTodo={addTodo}
+                    onRemoveTodo={removeTodo}
                 />
-            ) : (
+            ) : screen === "inbox" ? (
                 <InboxScreen
-                    onNavigate={() => setScreen("capture")}
+                    onNavigate={setScreen}
                     loading={suggestionLoading}
                     suggestion={suggestion}
                     onDecide={decide}
@@ -115,11 +120,11 @@ export default function App() {
                     onDeleteIdea={deleteIdea}
                     researchingId={researchingId}
                     researchProgress={researchProgress}
+                />
+            ) : (
+                <SettingsScreen
+                    onNavigate={setScreen}
                     userState={userState}
-                    onEmotion={setEmotion}
-                    onToggleCalendar={toggleCalendar}
-                    onAddTodo={addTodo}
-                    onRemoveTodo={removeTodo}
                     onSchedule={setSchedule}
                 />
             )}

@@ -1,3 +1,4 @@
+export type Screen = "capture" | "inbox" | "settings";
 export type IdeaStatus = "inbox" | "dump";
 export type DumpReason = "info_gap" | "no_capacity";
 export type Emotion = "bad" | "normal" | "good";
