@@ -820,6 +820,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "openai" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "sse-starlette" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -835,6 +836,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "openai", specifier = ">=1.54" },
     { name = "pydantic", specifier = ">=2.9" },
+    { name = "python-dotenv", specifier = ">=1.0" },
     { name = "sse-starlette", specifier = ">=3.4.4" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]

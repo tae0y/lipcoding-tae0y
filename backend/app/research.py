@@ -68,9 +68,47 @@ async def frame_options(params: FrameOptionsParams) -> dict:
     return {"options": params.options}
 
 
-# ── 동기 생성 ─────────────────────────────────────────────────────────────────
+# ── 폴백 휴리스틱 ─────────────────────────────────────────────────────────
+
+def _heuristic_research(idea_text: str) -> Research:
+    """AOAI 미설정/SDK 실패 시 사용할 최소 사전조사(500 크래시 방지)."""
+    return Research(
+        materials=[
+            ResearchMaterial(
+                fact=f"'{idea_text}' 실행에 필요한 핵심 정보를 먼저 모아두면 착수가 쉬워집니다.",
+                url=None,
+            ),
+        ],
+        options=[
+            "필요한 자료·링크를 한곳에 모아 정리하기",
+            "30분 안에 시도해볼 가장 작은 버전 정의하기",
+            "비슷한 사례나 경험자를 한 명 찾아보기",
+        ],
+        generatedAt=datetime.now(timezone.utc),
+    )
+
+
+async def _heuristic_research_stream(idea_text: str) -> AsyncIterator[dict]:
+    """휴리스틱 사전조사를 SSE delta+result로 흘려보낸다."""
+    research = _heuristic_research(idea_text)
+    yield {"event": "delta", "data": "AI 사전조사를 사용할 수 없어 기본 안내를 제공합니다."}
+    yield {"event": "result", "data": research.model_dump_json()}
+
+
+# ── 동기 생성 ───────────────────────────────────────────────────────────
 
 async def generate_research(idea_text: str) -> Research:
+    """info_gap 사전조사 생성. SKIP_COPILOT_SDK=1 또는 SDK 실패 시 휴리스틱 폴백."""
+    if os.environ.get("SKIP_COPILOT_SDK") == "1":
+        return _heuristic_research(idea_text)
+    try:
+        return await _generate_research_sdk(idea_text)
+    except Exception as exc:
+        logger.warning("SDK 사전조사 실패, 휴리스틱 폴백: %s", exc)
+        return _heuristic_research(idea_text)
+
+
+async def _generate_research_sdk(idea_text: str) -> Research:
     """Copilot SDK 에이전트가 도구 호출로 사전조사를 생성한다."""
     model = os.environ["AZURE_OPENAI_DEPLOYMENT"]
     provider = _provider()
@@ -110,6 +148,21 @@ async def generate_research(idea_text: str) -> Research:
 # ── SSE 스트리밍 생성 ──────────────────────────────────────────────────────────
 
 async def generate_research_stream(idea_text: str) -> AsyncIterator[dict]:
+    """info_gap 사전조사 스트림. SKIP_COPILOT_SDK=1/SDK 실패 시 휴리스틱 폴백."""
+    if os.environ.get("SKIP_COPILOT_SDK") == "1":
+        async for ev in _heuristic_research_stream(idea_text):
+            yield ev
+        return
+    try:
+        async for ev in _generate_research_stream_sdk(idea_text):
+            yield ev
+    except Exception as exc:
+        logger.warning("SDK 사전조사 스트림 실패, 휴리스틱 폴백: %s", exc)
+        async for ev in _heuristic_research_stream(idea_text):
+            yield ev
+
+
+async def _generate_research_stream_sdk(idea_text: str) -> AsyncIterator[dict]:
     """Copilot SDK 스트리밍으로 사전조사를 생성하며 SSE 이벤트를 yield한다.
 
     이벤트 종류:
@@ -129,7 +182,7 @@ async def generate_research_stream(idea_text: str) -> AsyncIterator[dict]:
             if delta:
                 full_content.append(delta)
                 queue.put_nowait({"event": "delta", "data": delta})
-        elif any(t in etype for t in ("SESSION_IDLE", "session.idle", "IDLE")):
+        elif any(t in etype for t in ("SessionEventType.IDLE", "session.idle", "IDLE")):
             queue.put_nowait(None)  # 완료 신호
 
     prompt = (
@@ -146,21 +199,19 @@ async def generate_research_stream(idea_text: str) -> AsyncIterator[dict]:
             provider=provider,
             streaming=True,
             tools=[collect_materials, frame_options],
+            on_event=on_event,
         )
-        session.on(on_event)
-        send_task = asyncio.create_task(session.send_and_wait(prompt))
+        await session.send(prompt)
 
         while True:
-            item = await asyncio.wait_for(queue.get(), timeout=60)
+            item = await asyncio.wait_for(queue.get(), timeout=90)
             if item is None:
                 break
             yield item
 
-        await send_task
-
-    # 최종 Research 파싱 후 result 이벤트
+    # 스트림이 끝나면 축적된 내용으로 Research 객체를 만들어 result 이벤트로 전달
+    content = "".join(full_content)
     try:
-        content = "".join(full_content)
         start = content.find("{")
         end = content.rfind("}") + 1
         data = json.loads(content[start:end])
@@ -171,5 +222,5 @@ async def generate_research_stream(idea_text: str) -> AsyncIterator[dict]:
         )
         yield {"event": "result", "data": research.model_dump_json()}
     except Exception as exc:
-        logger.error("사전조사 스트림 파싱 실패: %s", exc)
+        logger.error("사전조사 스트림 파싱 실패: %s | content=%r", exc, content[:200])
         yield {"event": "error", "data": str(exc)}

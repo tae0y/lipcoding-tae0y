@@ -11,6 +11,13 @@ import os
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# 로컬 개발용: backend/.env가 있으면 로드 (배포 환경엔 파일이 없어 무시됨).
+# 이미 설정된 환경변수는 덮어쓰지 않는다(override=False).
+load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
