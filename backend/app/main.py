@@ -7,13 +7,15 @@ Suggestion 베이스라인을 구현한다(판정·추천은 임시 휴리스틱
 
 from __future__ import annotations
 
+import os
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from app import config, db
 from app.judgment import judge_idea
@@ -55,13 +57,43 @@ app.add_middleware(
 
 
 @app.get("/", include_in_schema=False)
-def root() -> RedirectResponse:
+def root() -> Response:
+    """빌드된 SPA가 있으면 서빙, 없으면(로컬 백엔드 단독) /docs로."""
+    index = os.path.join(config.STATIC_DIR, "index.html")
+    if os.path.isfile(index):
+        return FileResponse(index)
     return RedirectResponse(url=config.DOCS_URL)
 
 
 @app.get(f"{config.API_PREFIX}/health", include_in_schema=False)
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/health", include_in_schema=False)
+def health_smoke() -> dict[str, bool]:
+    """배포 스모크용 헬스 (azure-deploy.md 계약)."""
+    return {"ok": True}
+
+
+@app.get("/health/ai", include_in_schema=False)
+def health_ai() -> dict[str, object]:
+    """Azure OpenAI 왕복 1회 — 모델 계층이 살아있는지 증명."""
+    import os
+
+    from openai import AzureOpenAI
+
+    client = AzureOpenAI(
+        api_version=os.environ["AZURE_OPENAI_API_VERSION"],
+        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
+    )
+    resp = client.chat.completions.create(
+        model=os.environ["AZURE_OPENAI_DEPLOYMENT"],
+        messages=[{"role": "user", "content": "ping"}],
+        max_tokens=5,
+    )
+    return {"ok": True, "reply": resp.choices[0].message.content}
 
 
 # --- Ideas -----------------------------------------------------------------
@@ -124,9 +156,9 @@ def get_user_state() -> UserState:
 def update_user_state(payload: UserStateUpdate) -> UserState:
     """오늘 상태/주간 트리거 스케줄 갱신(부분 갱신)."""
     current = db.get_user_state()
-    merged = current.model_copy(
-        update={k: v for k, v in payload.model_dump(exclude_unset=True).items()}
-    )
+    updates = payload.model_dump(exclude_unset=True)
+    # model_validate로 재구성해야 중첩 모델(triggerSchedule)이 dict로 남지 않는다.
+    merged = UserState.model_validate({**current.model_dump(), **updates})
     return db.save_user_state(merged)
 
 
@@ -201,3 +233,21 @@ def decide_suggestion(idea_id: str, payload: SuggestionDecisionRequest) -> Sugge
     updated = current.model_copy(update={"decision": payload.decision})
     db.save_suggestion(updated)
     return updated
+
+
+# --- SPA 정적 서빙 (단일 App Service) --------------------------------------
+
+
+class _SPAStaticFiles(StaticFiles):
+    """클라이언트 라우트 딥링크(404)는 index.html로 폴백."""
+
+    async def get_response(self, path: str, scope):  # type: ignore[override]
+        response = await super().get_response(path, scope)
+        if response.status_code == 404:
+            return await super().get_response("index.html", scope)
+        return response
+
+
+if os.path.isdir(config.STATIC_DIR):
+    # /api·/docs·/health 라우트는 위에서 먼저 등록되어 우선 매칭된다.
+    app.mount("/", _SPAStaticFiles(directory=config.STATIC_DIR, html=True), name="spa")

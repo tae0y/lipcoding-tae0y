@@ -22,3 +22,7 @@ DB_PATH: str = os.environ.get("APP_DB_PATH", "./data/app.db")
 CORS_ORIGINS: list[str] = os.environ.get(
     "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",")
+
+# 빌드된 SPA 정적 파일 위치 (frontend `vite build` → backend/static).
+# 단일 App Service에서 같은 오리진으로 서빙 → CORS 불필요.
+STATIC_DIR: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
