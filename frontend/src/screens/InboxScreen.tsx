@@ -51,6 +51,12 @@ const DUMP_REASON_LABEL: Record<string, string> = {
     no_capacity: "여유 부족",
 };
 
+const DECISION_LABEL: Record<string, string> = {
+    accepted: "할게요",
+    postponed: "다음에",
+    dismissed: "관심없음",
+};
+
 export default function InboxScreen({
     onNavigate,
     loading,
@@ -123,7 +129,10 @@ export default function InboxScreen({
                                     ))}
                                 </ul>
                                 {suggestion.decision ? (
-                                    <Badge>{suggestion.decision}</Badge>
+                                    <Badge>
+                                        {DECISION_LABEL[suggestion.decision] ??
+                                            suggestion.decision}
+                                    </Badge>
                                 ) : (
                                     <div className="flex flex-wrap gap-2">
                                         <Button onClick={() => onDecide("accepted")}>
@@ -254,144 +263,152 @@ export default function InboxScreen({
                     </Card>
                 </section>
 
-                <section className="space-y-3">
-                    <h2 className="text-xs font-semibold tracking-wide text-neutral-500">
-                        오늘 상태
-                    </h2>
-                    <Card>
-                        <CardContent className="space-y-5">
-                            {userState == null ? (
-                                <div className="space-y-3">
-                                    <Skeleton className="h-5 w-2/3" />
-                                    <Skeleton className="h-5 w-1/2" />
-                                    <Skeleton className="h-5 w-3/4" />
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="space-y-2">
-                                        <p className="text-xs font-medium text-neutral-500">기분</p>
-                                        <div className="flex gap-2">
-                                            {EMOTIONS.map((e) => (
-                                                <Button
-                                                    key={e.value}
-                                                    variant={
-                                                        userState.emotion === e.value ? "primary" : "outline"
-                                                    }
-                                                    onClick={() => onEmotion(e.value)}
-                                                >
-                                                    {e.label}
-                                                </Button>
-                                            ))}
+                <details className="group">
+                    <summary className="flex cursor-pointer list-none items-center gap-1.5 py-1 text-xs font-semibold tracking-wide text-neutral-500 hover:text-neutral-700">
+                        <span className="text-neutral-400 transition-transform group-open:rotate-90">›</span>
+                        설정 · 오늘 상태 / 추천 시각
+                    </summary>
+                    <div className="space-y-8 pt-4">
+                        <section className="space-y-3">
+                            <h2 className="text-xs font-semibold tracking-wide text-neutral-500">
+                                오늘 상태
+                            </h2>
+                            <Card>
+                                <CardContent className="space-y-5">
+                                    {userState == null ? (
+                                        <div className="space-y-3">
+                                            <Skeleton className="h-5 w-2/3" />
+                                            <Skeleton className="h-5 w-1/2" />
+                                            <Skeleton className="h-5 w-3/4" />
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-medium text-neutral-500">기분</p>
+                                                <div className="flex gap-2">
+                                                    {EMOTIONS.map((e) => (
+                                                        <Button
+                                                            key={e.value}
+                                                            variant={
+                                                                userState.emotion === e.value ? "primary" : "outline"
+                                                            }
+                                                            onClick={() => onEmotion(e.value)}
+                                                        >
+                                                            {e.label}
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </div>
 
-                                    <div className="space-y-2">
-                                        <p className="text-xs font-medium text-neutral-500">저녁</p>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                variant={!userState.calendarBusy ? "primary" : "outline"}
-                                                onClick={onToggleCalendar}
-                                                aria-pressed={!userState.calendarBusy}
-                                            >
-                                                {!userState.calendarBusy ? "☑" : "☐"} 저녁 비었음
-                                            </Button>
-                                            <span className="text-xs text-neutral-500">
-                                                (끄면 = 약속 있음)
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <p className="text-xs font-medium text-neutral-500">할일</p>
-                                        <ul className="space-y-1">
-                                            {userState.todos.map((todo, i) => (
-                                                <li
-                                                    key={i}
-                                                    className="flex items-center justify-between gap-2 text-sm"
-                                                >
-                                                    <span className="text-neutral-800">{todo}</span>
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-medium text-neutral-500">저녁</p>
+                                                <div className="flex items-center gap-2">
                                                     <Button
-                                                        variant="ghost"
-                                                        className="px-2 py-1 text-neutral-400"
-                                                        aria-label="할일 삭제"
-                                                        onClick={() => onRemoveTodo(i)}
+                                                        variant={!userState.calendarBusy ? "primary" : "outline"}
+                                                        onClick={onToggleCalendar}
+                                                        aria-pressed={!userState.calendarBusy}
                                                     >
-                                                        ✕
+                                                        {!userState.calendarBusy ? "☑" : "☐"} 저녁 비었음
                                                     </Button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={todoInput}
-                                                onChange={(e) => setTodoInput(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") handleAddTodo();
-                                                }}
-                                                placeholder="할일 추가…"
-                                                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
-                                            />
-                                            <Button variant="secondary" onClick={handleAddTodo}>
-                                                + 추가
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
-                </section>
+                                                    <span className="text-xs text-neutral-500">
+                                                        (끄면 = 약속 있음)
+                                                    </span>
+                                                </div>
+                                            </div>
 
-                <section className="space-y-3">
-                    <h2 className="text-xs font-semibold tracking-wide text-neutral-500">
-                        주간 추천 시각
-                    </h2>
-                    <Card>
-                        <CardContent className="space-y-3">
-                            {userState == null ? (
-                                <Skeleton className="h-9 w-full" />
-                            ) : (
-                                <>
-                                    <div className="flex gap-2">
-                                        <select
-                                            value={userState.triggerSchedule.weekday}
-                                            onChange={(e) =>
-                                                onSchedule(
-                                                    Number(e.target.value),
-                                                    userState.triggerSchedule.time,
-                                                )
-                                            }
-                                            aria-label="요일"
-                                            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
-                                        >
-                                            {WEEKDAYS.map((label, i) => (
-                                                <option key={i} value={i}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <input
-                                            type="time"
-                                            value={userState.triggerSchedule.time}
-                                            onChange={(e) =>
-                                                onSchedule(
-                                                    userState.triggerSchedule.weekday,
-                                                    e.target.value,
-                                                )
-                                            }
-                                            aria-label="시각"
-                                            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
-                                        />
-                                    </div>
-                                    <p className="text-xs text-neutral-500">
-                                        (퇴근 + 20~30분 버퍼 권장)
-                                    </p>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
-                </section>
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-medium text-neutral-500">할일</p>
+                                                <ul className="space-y-1">
+                                                    {userState.todos.map((todo, i) => (
+                                                        <li
+                                                            key={i}
+                                                            className="flex items-center justify-between gap-2 text-sm"
+                                                        >
+                                                            <span className="text-neutral-800">{todo}</span>
+                                                            <Button
+                                                                variant="ghost"
+                                                                className="px-2 py-1 text-neutral-400"
+                                                                aria-label="할일 삭제"
+                                                                onClick={() => onRemoveTodo(i)}
+                                                            >
+                                                                ✕
+                                                            </Button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={todoInput}
+                                                        onChange={(e) => setTodoInput(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") handleAddTodo();
+                                                        }}
+                                                        placeholder="할일 추가…"
+                                                        className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+                                                    />
+                                                    <Button variant="secondary" onClick={handleAddTodo}>
+                                                        + 추가
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </section>
+
+                        <section className="space-y-3">
+                            <h2 className="text-xs font-semibold tracking-wide text-neutral-500">
+                                주간 추천 시각
+                            </h2>
+                            <Card>
+                                <CardContent className="space-y-3">
+                                    {userState == null ? (
+                                        <Skeleton className="h-9 w-full" />
+                                    ) : (
+                                        <>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    value={userState.triggerSchedule.weekday}
+                                                    onChange={(e) =>
+                                                        onSchedule(
+                                                            Number(e.target.value),
+                                                            userState.triggerSchedule.time,
+                                                        )
+                                                    }
+                                                    aria-label="요일"
+                                                    className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+                                                >
+                                                    {WEEKDAYS.map((label, i) => (
+                                                        <option key={i} value={i}>
+                                                            {label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <input
+                                                    type="time"
+                                                    value={userState.triggerSchedule.time}
+                                                    onChange={(e) =>
+                                                        onSchedule(
+                                                            userState.triggerSchedule.weekday,
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    aria-label="시각"
+                                                    className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-neutral-500">
+                                                (퇴근 + 20~30분 버퍼 권장)
+                                            </p>
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </section>
+                    </div>
+                </details>
             </main>
         </div>
     );

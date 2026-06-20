@@ -1,0 +1,6 @@
+# App Service 배포 zip 제외 (az webapp up / az webapp deploy)
+.venv/
+data/
+__pycache__/
+*.pyc
+verify_sdk.py
