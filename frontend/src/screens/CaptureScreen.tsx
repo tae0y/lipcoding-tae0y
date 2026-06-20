@@ -57,7 +57,7 @@ export default function CaptureScreen({
                             지금 떠오른 생각, 한 줄로
                         </h2>
                         <p className="text-sm text-neutral-500">
-                            담아두고 머릿속에서 비우세요. 판단은 나중에 AI가 대신합니다.
+                            담아두고 머릿속을 비우세요. 중요한 일에 집중하세요.
                         </p>
                     </div>
 
