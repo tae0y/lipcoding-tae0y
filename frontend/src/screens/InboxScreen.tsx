@@ -96,11 +96,16 @@ export default function InboxScreen({
                 </div>
             </header>
 
-            <main className="mx-auto max-w-[640px] px-4 py-8 space-y-10">
+            <main className="mx-auto max-w-[640px] px-4 py-8 space-y-12">
                 <section className="space-y-3">
-                    <h2 className="text-xs font-semibold tracking-wide text-neutral-500">
-                        이번 주 추천
-                    </h2>
+                    <div className="flex items-baseline justify-between border-b border-neutral-200 pb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-violet-400" />
+                            <h2 className="text-sm font-semibold tracking-tight text-neutral-900">
+                                이번 주 추천
+                            </h2>
+                        </div>
+                    </div>
                     {loading ? (
                         <Card>
                             <CardContent className="space-y-3">
@@ -156,11 +161,16 @@ export default function InboxScreen({
                 </section>
 
                 <section className="space-y-3">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-xs font-semibold tracking-wide text-neutral-500">
-                            지금 착수 가능 (inbox)
-                        </h2>
-                        <Badge>{inboxIdeas.length}</Badge>
+                    <div className="flex items-baseline justify-between border-b border-neutral-200 pb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                            <h2 className="text-sm font-semibold tracking-tight text-neutral-900">
+                                지금 착수 가능
+                            </h2>
+                        </div>
+                        <span className="text-xs font-medium text-neutral-400">
+                            {inboxIdeas.length}개
+                        </span>
                     </div>
                     <Card>
                         <CardContent>
@@ -189,20 +199,25 @@ export default function InboxScreen({
                 </section>
 
                 <section className="space-y-3">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-xs font-semibold tracking-wide text-neutral-500">
-                            보관함 / 덤프
-                        </h2>
-                        <Badge>{dumpIdeas.length}</Badge>
+                    <div className="flex items-baseline justify-between border-b border-neutral-200 pb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-amber-400" />
+                            <h2 className="text-sm font-semibold tracking-tight text-neutral-900">
+                                보관함 / 덤프
+                            </h2>
+                        </div>
+                        <span className="text-xs font-medium text-neutral-400">
+                            {dumpIdeas.length}개
+                        </span>
                     </div>
                     <Card>
                         <CardContent>
                             {dumpIdeas.length === 0 ? (
                                 <p className="text-sm text-neutral-400">비어 있음</p>
                             ) : (
-                                <ul className="space-y-3">
+                                <ul className="divide-y divide-neutral-100">
                                     {dumpIdeas.map((idea) => (
-                                        <li key={idea.id} className="space-y-2">
+                                        <li key={idea.id} className="space-y-2 py-3 first:pt-0 last:pb-0">
                                             <div className="flex items-start justify-between gap-3">
                                                 <span className="text-sm text-neutral-800">
                                                     {idea.text}
