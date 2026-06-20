@@ -1,0 +1,738 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "작업기억 보존 아이디어 인박스 API",
+    "version": "0.1.0",
+    "contact": {
+      "name": "lipcoding-tae0y"
+    },
+    "description": "퇴근 후 개인 시간에 \"지금 착수 가능한 아이디어\"를 추천하는 앱의 백엔드 API.\n핵심 흐름은 두 개의 판단으로 구성된다.\n1. **입구 판정** — 아이디어 캡처 시 `정보 준비성` + `현재 여유` 2요소로\n   `inbox`(착수 가능) 또는 `dump`(보류 + 사유 태그)를 결정한다.\n2. **주간 트리거** — 주 1회(퇴근 + 버퍼) 배치로 부하가 낮을 때 덤프에서\n   1건을 \"지금 해볼까요?\"로 제안한다.\n\n`info_gap` 사유의 덤프 항목에는 AI가 사전조사(재료 + 선택지/프레임)를 채운다. 최종 \"다음 액션 결정\"과 제안 승인은 항상 사람이 한다(강화 원칙).\n가정: **단일 사용자, 인증 없음.** UserState/Suggestion은 단일 인스턴스로 다룬다.\n"
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "기본 API 베이스 경로"
+    }
+  ],
+  "tags": [
+    {
+      "name": "ideas",
+      "description": "아이디어 캡처·조회·삭제 및 입구 판정"
+    },
+    {
+      "name": "research",
+      "description": "info_gap 항목 AI 사전조사"
+    },
+    {
+      "name": "user-state",
+      "description": "부하 신호(감정/투두/캘린더/주간 트리거 스케줄)"
+    },
+    {
+      "name": "suggestions",
+      "description": "주간 트리거 결과 제안과 사람 승인"
+    }
+  ],
+  "paths": {
+    "/ideas": {
+      "post": {
+        "tags": [
+          "ideas"
+        ],
+        "operationId": "createIdea",
+        "summary": "아이디어 캡처 + 입구 판정",
+        "description": "아이디어 한 줄을 입력하면 Copilot SDK 입구 판정 도구가 정보 준비성과 현재 여유를 평가하여 `inbox` 또는 `dump`(+사유)로 분류한다. `dumpReason=info_gap`이면 사전조사 잡이 트리거될 수 있다(스케줄 정책에 따름).\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdeaCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "캡처 및 판정 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Idea"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ideas"
+        ],
+        "operationId": "listIdeas",
+        "summary": "아이디어 목록 조회(섹션 필터)",
+        "description": "조회 화면의 \"지금 착수 가능\"(inbox) / \"보관함/덤프\"(dump) 섹션을 채운다.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "상태 필터. 생략 시 전체 반환.",
+            "schema": {
+              "$ref": "#/components/schemas/IdeaStatus"
+            }
+          },
+          {
+            "name": "dumpReason",
+            "in": "query",
+            "required": false,
+            "description": "status=dump일 때 사유로 추가 필터.",
+            "schema": {
+              "$ref": "#/components/schemas/DumpReason"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "아이디어 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Idea"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ideas/{ideaId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdeaId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "ideas"
+        ],
+        "operationId": "getIdea",
+        "summary": "아이디어 단건 조회",
+        "description": "사전조사 노트를 포함한 아이디어 상세를 반환한다.",
+        "responses": {
+          "200": {
+            "description": "아이디어 상세(사전조사 노트 포함)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Idea"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ideas"
+        ],
+        "operationId": "deleteIdea",
+        "summary": "아이디어 삭제",
+        "description": "아이디어를 영구 삭제한다.",
+        "responses": {
+          "204": {
+            "description": "삭제됨"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/ideas/{ideaId}/research": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdeaId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "research"
+        ],
+        "operationId": "runResearch",
+        "summary": "AI 사전조사 실행(재실행)",
+        "description": "`info_gap` 덤프 항목의 빈틈을 조사해 재료(materials)와 선택지/프레임 (options)을 생성한다. 산출물은 재료·구조화까지로 제한하며 \"다음 액션 결정\"은 사람의 몫으로 남긴다. 스트리밍 진행 표시는 stream=true로 받는다.\n",
+        "parameters": [
+          {
+            "name": "stream",
+            "in": "query",
+            "required": false,
+            "description": "true면 text/event-stream으로 조사 진행을 스트리밍한다.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "사전조사 완료(동기 응답)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Research"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "SSE 청크 스트림. 종료 시 최종 Research JSON 이벤트 전송."
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "사전조사 대상이 아님(예 - info_gap 아님)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user-state": {
+      "get": {
+        "tags": [
+          "user-state"
+        ],
+        "operationId": "getUserState",
+        "summary": "현재 부하 신호 조회",
+        "description": "현재 저장된 감정/투두/캘린더/주간 트리거 스케줄을 반환한다.",
+        "responses": {
+          "200": {
+            "description": "현재 UserState",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserState"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "user-state"
+        ],
+        "operationId": "updateUserState",
+        "summary": "오늘 상태/주간 트리거 스케줄 갱신",
+        "description": "입력 화면의 \"오늘 상태\"(감정/투두/캘린더)와 주간 트리거 요일·시각을 저장한다.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserStateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "갱신된 UserState",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserState"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/suggestions/run": {
+      "post": {
+        "tags": [
+          "suggestions"
+        ],
+        "operationId": "runWeeklyTrigger",
+        "summary": "주간 트리거 1회 실행(배치/데모용)",
+        "description": "스케줄 배치가 호출하는 엔드포인트. 부하 게이트(저녁 가용성 + 감정)를 확인하고, 통과 시 덤프 항목을 랭킹(부하/사전조사/연관성)하여 추천 1건을 생성한다. 게이트 미통과면 그 주는 침묵하고 제안을 만들지 않는다.\n",
+        "responses": {
+          "200": {
+            "description": "트리거 실행 결과. 게이트 미통과 시 suggestion은 null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyTriggerResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/suggestions/current": {
+      "get": {
+        "tags": [
+          "suggestions"
+        ],
+        "operationId": "getCurrentSuggestion",
+        "summary": "이번 주 추천 조회",
+        "description": "조회 화면 상단 \"이번 주 추천\" 카드를 채운다.",
+        "responses": {
+          "200": {
+            "description": "현재 활성 추천. 없으면 null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Suggestion"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/suggestions/{ideaId}/decision": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdeaId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "suggestions"
+        ],
+        "operationId": "decideSuggestion",
+        "summary": "추천에 대한 사람의 결정",
+        "description": "`[지금 해볼게요 / 다음에 / 관심없음]` 버튼에 대응. 최종 승인은 항상 사람이 한다.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "결정 반영된 Suggestion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Suggestion"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "IdeaId": {
+        "name": "ideaId",
+        "in": "path",
+        "required": true,
+        "description": "아이디어 식별자",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "리소스를 찾을 수 없음",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "입력 검증 실패",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "IdeaStatus": {
+        "type": "string",
+        "enum": [
+          "inbox",
+          "dump"
+        ],
+        "description": "inbox=지금 착수 가능, dump=보류"
+      },
+      "DumpReason": {
+        "type": "string",
+        "enum": [
+          "info_gap",
+          "no_capacity"
+        ],
+        "description": "info_gap=정보 부족으로 보류(AI 사전조사 대상), no_capacity=정보는 충분하나 지금 여유 없음(조사 스킵, 주간 트리거 대기)\n"
+      },
+      "Emotion": {
+        "type": "string",
+        "enum": [
+          "bad",
+          "normal",
+          "good"
+        ]
+      },
+      "SuggestionDecision": {
+        "type": "string",
+        "enum": [
+          "accepted",
+          "postponed",
+          "dismissed"
+        ],
+        "description": "accepted=지금 해볼게요, postponed=다음에, dismissed=관심없음"
+      },
+      "IdeaCreateRequest": {
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "원문 아이디어 한 줄"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Research": {
+        "type": "object",
+        "description": "info_gap 항목에만 AI가 채우는 사전조사 산출물",
+        "required": [
+          "materials",
+          "options"
+        ],
+        "properties": {
+          "materials": {
+            "type": "array",
+            "description": "재료 — 빠진 정보·참고 사실·링크",
+            "items": {
+              "$ref": "#/components/schemas/ResearchMaterial"
+            }
+          },
+          "options": {
+            "type": "array",
+            "description": "선택지/프레임 — \"보통 A/B/C 옵션이 있다\" 수준의 구조화",
+            "items": {
+              "type": "string"
+            }
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ResearchMaterial": {
+        "type": "object",
+        "required": [
+          "fact"
+        ],
+        "properties": {
+          "fact": {
+            "type": "string",
+            "description": "참고 사실·재료 요약"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "참고 링크(선택)"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Idea": {
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IdeaStatus"
+          },
+          "dumpReason": {
+            "description": "status=dump일 때만 채워짐",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DumpReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "research": {
+            "description": "dumpReason=info_gap이고 조사 완료 시 채워짐",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Research"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserState": {
+        "type": "object",
+        "required": [
+          "emotion",
+          "todos",
+          "calendarBusy",
+          "triggerSchedule"
+        ],
+        "properties": {
+          "emotion": {
+            "$ref": "#/components/schemas/Emotion"
+          },
+          "todos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "직접 입력 또는 연동된 할일"
+          },
+          "calendarBusy": {
+            "type": "boolean",
+            "description": "저녁 가용성. true=저녁이 참(추천 보류 신호)"
+          },
+          "triggerSchedule": {
+            "$ref": "#/components/schemas/TriggerSchedule"
+          }
+        }
+      },
+      "UserStateUpdate": {
+        "type": "object",
+        "description": "부분 갱신 허용. 제공된 필드만 반영한다.",
+        "properties": {
+          "emotion": {
+            "$ref": "#/components/schemas/Emotion"
+          },
+          "todos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "calendarBusy": {
+            "type": "boolean"
+          },
+          "triggerSchedule": {
+            "$ref": "#/components/schemas/TriggerSchedule"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TriggerSchedule": {
+        "type": "object",
+        "description": "주 1회 트리거(퇴근 + 20~30분 버퍼)",
+        "required": [
+          "weekday",
+          "time"
+        ],
+        "properties": {
+          "weekday": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6,
+            "description": "0=월요일 ... 6=일요일"
+          },
+          "time": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "description": "HH:MM 24시간 형식"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SuggestionReasons": {
+        "type": "object",
+        "description": "추천 근거 3줄(투명성 확보)",
+        "required": [
+          "lowLoad",
+          "researchDone",
+          "relevance"
+        ],
+        "properties": {
+          "lowLoad": {
+            "type": "string",
+            "description": "부하가 낮다는 근거"
+          },
+          "researchDone": {
+            "type": "string",
+            "description": "사전조사가 충분하다는 근거"
+          },
+          "relevance": {
+            "type": "string",
+            "description": "현재 관심사·진행 중인 일과의 연관성 근거"
+          }
+        }
+      },
+      "Suggestion": {
+        "type": "object",
+        "description": "주간 트리거 결과 제안",
+        "required": [
+          "ideaId",
+          "reasons",
+          "decision"
+        ],
+        "properties": {
+          "ideaId": {
+            "type": "string"
+          },
+          "idea": {
+            "description": "편의상 동봉되는 대상 아이디어 스냅샷(선택)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Idea"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasons": {
+            "$ref": "#/components/schemas/SuggestionReasons"
+          },
+          "decision": {
+            "description": "사람의 결정. 미결정 시 null",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SuggestionDecision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SuggestionDecisionRequest": {
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/SuggestionDecision"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeeklyTriggerResult": {
+        "type": "object",
+        "required": [
+          "gatePassed"
+        ],
+        "properties": {
+          "gatePassed": {
+            "type": "boolean",
+            "description": "부하 게이트 통과 여부. false면 그 주는 침묵."
+          },
+          "suggestion": {
+            "description": "게이트 통과 시 생성된 추천. 미통과면 null.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Suggestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skippedReason": {
+            "type": "string",
+            "description": "게이트 미통과 사유(예 - 저녁 약속 있음/감정 나쁨/덤프 비어있음)"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
