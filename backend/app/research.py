@@ -40,14 +40,19 @@ def _provider() -> dict:
 
 class CollectMaterialsParams(BaseModel):
     materials: list[dict] = Field(
-        description="재료 목록. 각 항목은 {fact: str, url?: str} 형식."
-                    "아이디어 실행에 필요한 핵심 사실, 참고 정보, 수치를 3~5개 포함."
+        description="재료 목록. 각 항목은 {fact: str, url?: str} 형식. "
+                    "아이디어에 '바로 착수'하는 데 쓰이는 구체적 사실 3~5개. "
+                    "예: 적정 인원·주기 같은 수치, 준비 체크리스트 항목, 쓸 만한 툴·플랫폼 이름, "
+                    "흔한 실패 요인, 참고할 사례. "
+                    "금지: 아이디어 그 자체를 정의·재진술하는 문장('○○은 ~이다', '○○은 ~할 수 있다'). "
+                    "일반론·사전적 설명이 아니라 실행자가 당장 참고할 정보만 담는다."
     )
 
 
 @define_tool(
-    description="아이디어 실행에 필요한 핵심 사실과 참고 재료를 수집한다. "
-                "사실(fact)과 선택적 URL로 구성된 목록을 반환한다."
+    description="아이디어 실행에 바로 쓰이는 구체적 사실·참고 재료를 수집한다. "
+                "아이디어를 정의하지 않고, 착수에 필요한 수치·체크리스트·툴 이름·실패 요인 같은 "
+                "구체적 사실(fact)과 선택적 URL 목록을 반환한다."
 )
 async def collect_materials(params: CollectMaterialsParams) -> dict:
     return {"materials": params.materials}
@@ -55,8 +60,10 @@ async def collect_materials(params: CollectMaterialsParams) -> dict:
 
 class FrameOptionsParams(BaseModel):
     options: list[str] = Field(
-        description="아이디어를 실행하는 선택지 또는 접근 프레임 2~4개. "
-                    "각 옵션은 한 문장으로 구체적으로 서술한다."
+        description="아이디어를 진전시킬 '다음에 시도할 구체적 행동 프레임' 2~4개. "
+                    "각 옵션은 한 문장으로, 무엇을 어떻게 할지 분명히 서술한다. "
+                    "금지: 아이디어를 일반적으로 운영하는 방식을 추상적으로 나열하는 것. "
+                    "사람이 바로 고를 수 있는 구체적 선택지여야 한다."
     )
 
 
@@ -116,9 +123,14 @@ async def _generate_research_sdk(idea_text: str) -> Research:
     prompt = (
         f"아이디어: {idea_text!r}\n\n"
         "이 아이디어의 실행 가능성을 높이기 위해 다음 두 도구를 순서대로 호출하라:\n"
-        "1. collect_materials — 실행에 필요한 핵심 사실 3~5개 수집\n"
-        "2. frame_options — 접근 가능한 선택지/프레임 2~4개 제시\n\n"
-        "중요: '다음 액션을 ○○하라'는 지시는 생성하지 말 것. "
+        "1. collect_materials — 착수에 바로 쓰이는 구체적 사실 3~5개 수집\n"
+        "2. frame_options — 다음에 시도할 구체적 행동 프레임 2~4개 제시\n\n"
+        "매우 중요 — 다음을 반드시 지켜라:\n"
+        "- 아이디어가 무엇인지 정의·설명하지 말 것. 사용자는 이미 안다. "
+        "'○○은 ~이다', '○○은 ~할 수 있다' 같은 일반론·사전적 문장은 금지.\n"
+        "- 대신 실행자가 당장 참고할 구체 정보만: 적정 수치, 준비 체크리스트, "
+        "쓸 만한 툴·플랫폼 이름, 흔한 실패 요인, 참고 사례.\n"
+        "- '다음 액션을 ○○하라'는 지시는 생성하지 말 것. "
         "재료와 선택지만 제공하고 결정은 사람의 몫으로 남긴다.\n\n"
         "두 도구 호출이 끝나면 아래 JSON 형식으로만 답하라(다른 텍스트 없이):\n"
         '{"materials":[{"fact":"...","url":null}],"options":["..."]}'
@@ -188,6 +200,9 @@ async def _generate_research_stream_sdk(idea_text: str) -> AsyncIterator[dict]:
     prompt = (
         f"아이디어: {idea_text!r}\n\n"
         "collect_materials와 frame_options 도구를 호출해 사전조사를 수행하라.\n"
+        "매우 중요: 아이디어가 무엇인지 정의·설명하지 말 것('○○은 ~이다' 금지). "
+        "사용자는 이미 안다. 대신 착수에 바로 쓰이는 구체적 사실(수치·체크리스트·툴 이름·"
+        "실패 요인·참고 사례)과 다음에 시도할 구체적 행동 프레임만 담아라.\n"
         "모든 도구 호출이 끝나면 아래 JSON 형식으로만 결과를 출력하라:\n"
         '{"materials":[{"fact":"...","url":null}],"options":["..."]}'
     )
