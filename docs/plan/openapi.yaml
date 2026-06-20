@@ -366,7 +366,7 @@ components:
           type: array
           items:
             type: string
-          description: 직접 입력 또는 연동된 할일
+          description: 사용자가 앱 내에서 직접 입력한 할일 (외부 연동 없음)
         calendarBusy:
           type: boolean
           description: 저녁 가용성. true=저녁이 참(추천 보류 신호)
