@@ -90,3 +90,11 @@ This is a timed competition. Work against the time-allocation plan in
 - Prioritize tasks by the plan: protect the "엔드투엔드로 돈다" baseline and the
   15:40 배포 데드라인. If we are behind schedule, say so and propose what to cut.
 - Keep scope to the plan (3 screens, the 필수 3종). Flag any work that drifts beyond it.
+
+## Git commits
+
+- When committing, only stage and commit the files that were actually worked on in
+  **this** session. Do not blanket-add everything (no `git add -A` / `git add .`).
+- Stage files explicitly by path so unrelated or in-progress work stays untouched.
+- If you're unsure whether a changed file belongs to this session's work, ask before
+  including it rather than committing it by default.
