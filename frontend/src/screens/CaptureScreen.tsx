@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Emotion, Screen, UserState } from "../lib/types";
+import type { Emotion, Idea, Screen, UserState } from "../lib/types";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Card, CardContent } from "../components/ui/card";
@@ -19,6 +19,8 @@ interface CaptureScreenProps {
     onIdeaTextChange: (v: string) => void;
     onSubmit: () => void;
     submitting: boolean;
+    lastVerdict: Idea | null;
+    verdictError: string | null;
     userState: UserState | null;
     onEmotion: (e: Emotion) => void;
     onToggleCalendar: () => void;
@@ -32,6 +34,8 @@ export default function CaptureScreen({
     onIdeaTextChange,
     onSubmit,
     submitting,
+    lastVerdict,
+    verdictError,
     userState,
     onEmotion,
     onToggleCalendar,
@@ -76,6 +80,17 @@ export default function CaptureScreen({
                         </Button>
                     </div>
                     <WaitingProgress active={submitting} />
+
+                    {verdictError ? (
+                        <div
+                            role="alert"
+                            className="rounded-[14px] border border-[rgba(232,37,42,0.35)] bg-[rgba(232,37,42,0.12)] px-4 py-3 text-sm text-[rgba(255,255,255,0.90)]"
+                        >
+                            담는 중 문제가 생겼어요: {verdictError}
+                        </div>
+                    ) : !submitting && lastVerdict ? (
+                        <VerdictCard idea={lastVerdict} onNavigate={onNavigate} />
+                    ) : null}
                 </section>
 
                 <section className="space-y-3">
@@ -170,6 +185,51 @@ export default function CaptureScreen({
                     </Card>
                 </section>
             </main>
+        </div>
+    );
+}
+
+function VerdictCard({
+    idea,
+    onNavigate,
+}: {
+    idea: Idea;
+    onNavigate: (s: Screen) => void;
+}) {
+    const isInbox = idea.status === "inbox";
+    const isInfoGap = idea.dumpReason === "info_gap";
+    const researchCount = idea.research?.materials.length ?? 0;
+
+    const title = isInbox
+        ? "✅ 바로 착수 가능 — 인박스로"
+        : isInfoGap
+            ? "🔎 정보가 더 필요해요 — 덤프(사전조사)"
+            : "🌙 지금은 여유가 부족 — 덤프(나중에)";
+
+    return (
+        <div
+            role="status"
+            aria-live="polite"
+            className="rounded-[14px] border border-[rgba(255,255,255,0.20)] bg-[rgba(255,255,255,0.06)] px-4 py-3 space-y-2"
+        >
+            <p className="text-sm font-extrabold text-white">{title}</p>
+            <p className="text-xs text-[rgba(255,255,255,0.65)]">“{idea.text}”</p>
+            {isInfoGap ? (
+                researchCount > 0 ? (
+                    <p className="text-xs text-[rgba(255,255,255,0.65)]">
+                        AI가 사전조사 자료 {researchCount}건을 자동으로 붙였어요.
+                    </p>
+                ) : (
+                    <p className="text-xs text-[rgba(255,255,255,0.55)]">
+                        사전조사는 인박스에서 다시 시도할 수 있어요.
+                    </p>
+                )
+            ) : null}
+            <div className="flex justify-end pt-1">
+                <Button variant="secondary" onClick={() => onNavigate("inbox")}>
+                    인박스 보기 →
+                </Button>
+            </div>
         </div>
     );
 }

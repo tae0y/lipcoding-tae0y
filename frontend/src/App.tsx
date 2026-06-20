@@ -18,6 +18,8 @@ export default function App() {
         inboxIdeas,
         dumpIdeas,
         submitting,
+        lastVerdict,
+        verdictError,
         captureIdea,
         deleteIdea,
         reload: reloadIdeas,
@@ -66,7 +68,7 @@ export default function App() {
         if (!text) return;
         await captureIdea(text);
         setIdeaText("");
-        setScreen("inbox");
+        // 제출 직후 AI 판정을 캡처 화면에서 보여준다(자동 이동하지 않음).
     };
 
     const handleRunResearch = async (ideaId: string) => {
@@ -112,6 +114,8 @@ export default function App() {
                     onIdeaTextChange={setIdeaText}
                     onSubmit={handleSubmit}
                     submitting={submitting}
+                    lastVerdict={lastVerdict}
+                    verdictError={verdictError}
                     userState={userState}
                     onEmotion={handleEmotion}
                     onToggleCalendar={handleToggleCalendar}

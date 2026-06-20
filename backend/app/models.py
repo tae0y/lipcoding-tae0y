@@ -54,7 +54,11 @@ class Research(BaseModel):
 
 
 class IdeaCreateRequest(BaseModel):
-    text: str = Field(min_length=1, description="원문 아이디어 한 줄")
+    text: str = Field(
+        min_length=1,
+        max_length=2000,
+        description="원문 아이디어 한 줄(최대 2000자 — 과도한 입력/남용 방어)",
+    )
 
 
 class Idea(BaseModel):

@@ -7,6 +7,7 @@ Suggestion 베이스라인을 구현한다(판정·추천은 임시 휴리스틱
 
 from __future__ import annotations
 
+import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
@@ -44,6 +45,9 @@ from app.models import (
 # Copilot CLI(자식 프로세스)를 BYOK로 구성해 GitHub 인증 없이 Azure/Foundry로 동작.
 # import 시점에 1회 실행 → 각 워커 프로세스 env에 반영(이후 spawn되는 CLI가 상속).
 config.configure_copilot_cli_byok()
+
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -114,15 +118,29 @@ def health_ai() -> dict[str, object]:
 
 @app.post(f"{config.API_PREFIX}/ideas", response_model=Idea, status_code=201, tags=["ideas"])
 async def create_idea(payload: IdeaCreateRequest) -> Idea:
-    """아이디어 캡처 + 입구 판정."""
+    """아이디어 캡처 + 입구 판정.
+
+    PRD 핵심 흐름: info_gap 으로 판정된 항목은 캡처 시점에 사전조사를
+    자동으로 붙인다(별도 버튼/수동 호출 불필요). 사전조사 실패가 캡처
+    자체를 막지 않도록 예외는 삼키고 research=None 으로 저장한다.
+    """
     state = db.get_user_state()
     status, dump_reason = await judge_idea(payload.text, state)
+    research = None
+    if dump_reason == DumpReason.info_gap:
+        from app.research import generate_research
+
+        try:
+            research = await generate_research(payload.text)
+        except Exception:  # noqa: BLE001 — 캡처는 항상 성공해야 함
+            logger.exception("자동 사전조사 실패 — research 없이 캡처 진행")
+            research = None
     idea = Idea(
         id=str(uuid.uuid4()),
         text=payload.text,
         status=status,
         dumpReason=dump_reason,
-        research=None,
+        research=research,
         createdAt=datetime.now(timezone.utc),
     )
     return db.insert_idea(idea)
