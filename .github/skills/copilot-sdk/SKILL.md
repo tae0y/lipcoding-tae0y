@@ -900,6 +900,20 @@ Your Application
 
 The SDK manages the CLI process lifecycle automatically. All communication happens via JSON-RPC over stdio or TCP.
 
+## Python Recipes (FastAPI backend)
+
+Working Python patterns for the FastAPI backend live in `references/python/`. Read the matching
+recipe before implementing the corresponding feature:
+
+- **Session lifecycle / streaming**: `references/python/README.md`
+- **Persisting sessions** (resume across requests): `references/python/persisting-sessions.md` + `recipe/persisting_sessions.py`
+- **Multiple concurrent sessions** (per-user agents): `references/python/multiple-sessions.md` + `recipe/multiple_sessions.py`
+- **Error handling**: `references/python/error-handling.md` + `recipe/error_handling.py`
+- **Error recovery hooks** (retry/guardrails): `references/python/error-recovery-hooks.md` + `recipe/error_recovery_hooks.py`
+- **Managing local files** (tool-driven file ops): `references/python/managing-local-files.md` + `recipe/managing_local_files.py`
+- **Agentic loop pattern**: `references/python/ralph-loop.md` + `recipe/ralph_loop.py`
+- Dependencies for the recipes: `references/python/recipe/requirements.txt`
+
 ## Resources
 
 - **GitHub Repository**: https://github.com/github/copilot-sdk
