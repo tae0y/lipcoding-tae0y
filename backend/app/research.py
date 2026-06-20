@@ -36,6 +36,20 @@ def _provider() -> dict:
     }
 
 
+def _make_client() -> CopilotClient:
+    """SDK 런타임 클라이언트 생성.
+
+    BYOK 모드(``COPILOT_PROVIDER_BASE_URL`` 설정)일 때는 ``use_logged_in_user=False``
+    로 강제한다. 그래야 번들 런타임이 ``--no-auto-login`` 으로 떠서 GitHub 로그인
+    사용자 없이도(헤드리스 서버/컨테이너) BYOK 프로바이더로 동작한다. 이 플래그가
+    없으면 기본값이 ``True`` 라 런타임이 GitHub 자동 로그인을 시도하다 막혀
+    빈 결과로 끝난다(운영 컨테이너 증상).
+    """
+    if os.environ.get("COPILOT_PROVIDER_BASE_URL", "").strip():
+        return CopilotClient(use_logged_in_user=False)
+    return CopilotClient()
+
+
 # ── 도구 정의 ─────────────────────────────────────────────────────────────────
 #
 # 핵심: 도구는 "장식"이 아니라 에이전트의 실제 출력 채널이다.
@@ -263,7 +277,7 @@ async def _generate_research_sdk(idea_text: str) -> Research:
         "재료와 선택지만 제공하고 결정은 사람의 몫으로 남긴다."
     )
 
-    async with CopilotClient() as client:
+    async with _make_client() as client:
         session = await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
             model=model,
@@ -352,14 +366,15 @@ async def _generate_research_stream_sdk(idea_text: str) -> AsyncIterator[dict]:
 
     prompt = (
         f"아이디어: {idea_text!r}\n\n"
-        "너는 사전조사 에이전트다. collect_materials와 frame_options 도구를 직접 호출해 "
-        "사전조사를 완성하라. 결과는 오직 도구 호출로만 전달한다(별도 JSON/설명 텍스트 불필요).\n"
+        "너는 사전조사 에이전트다. collect_materials 도구와 frame_options 도구를 "
+        "각각 한 번 이상 반드시 호출하라. 결과는 오직 도구 호출로만 전달한다"
+        "(별도 JSON/설명 텍스트 불필요). 도구를 호출하지 않으면 결과가 저장되지 않는다.\n"
         "매우 중요: 아이디어가 무엇인지 정의·설명하지 말 것('○○은 ~이다' 금지). "
         "사용자는 이미 안다. 대신 착수에 바로 쓰이는 구체적 사실(수치·체크리스트·툴 이름·"
         "실패 요인·참고 사례)과 다음에 시도할 구체적 행동 프레임만 담아라."
     )
 
-    async with CopilotClient() as client:
+    async with _make_client() as client:
         session = await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
             model=model,
