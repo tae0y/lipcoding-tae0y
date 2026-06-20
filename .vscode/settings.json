@@ -1,0 +1,18 @@
+{
+  "accessibility.voice.speechLanguage": "ko-KR",
+  //"accessibility.voice.keywordActivation": "chatInContext",
+  "accessibility.voice.speechTimeout": 1200,
+  "accessibility.voice.autoSynthesize": "on",
+  "chat.agent.enabled": true,
+  "chat.tools.autoApprove": true,
+  "github.copilot.chat.localeOverride": "ko",
+  "github.copilot.chat.agent.runTasks": true,
+  "github.copilot.chat.commitMessageGeneration.enabled": true,
+  "editor.formatOnSave": true,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000
+}
