@@ -99,3 +99,33 @@ export function decideSuggestion(
 export function runResearch(ideaId: string): Promise<unknown> {
     return request<unknown>(`/api/ideas/${ideaId}/research`, { method: "POST" });
 }
+
+export async function runResearchStream(
+    ideaId: string,
+    onDelta: (chunk: string) => void,
+): Promise<void> {
+    const res = await fetch(`/api/ideas/${ideaId}/research?stream=true`, {
+        method: "POST",
+    });
+    if (!res.ok) throw new Error(res.statusText);
+    if (!res.body) return;
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const blocks = buf.split("\n\n");
+        buf = blocks.pop() ?? "";
+        for (const block of blocks) {
+            let eventType = "";
+            let data = "";
+            for (const line of block.split("\n")) {
+                if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+                else if (line.startsWith("data: ")) data = line.slice(6);
+            }
+            if (eventType === "delta" && data) onDelta(data);
+        }
+    }
+}

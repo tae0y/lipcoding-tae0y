@@ -4,7 +4,7 @@ import InboxScreen from "./screens/InboxScreen";
 import { useIdeas } from "./hooks/useIdeas";
 import { useUserState } from "./hooks/useUserState";
 import { useSuggestion } from "./hooks/useSuggestion";
-import { runResearch } from "./lib/api";
+import { runResearchStream } from "./lib/api";
 
 type Screen = "capture" | "inbox";
 
@@ -12,6 +12,7 @@ export default function App() {
     const [screen, setScreen] = useState<Screen>("capture");
     const [ideaText, setIdeaText] = useState("");
     const [researchingId, setResearchingId] = useState<string | null>(null);
+    const [researchProgress, setResearchProgress] = useState<string>("");
 
     const {
         inboxIdeas,
@@ -60,13 +61,17 @@ export default function App() {
 
     const handleRunResearch = async (ideaId: string) => {
         setResearchingId(ideaId);
+        setResearchProgress("");
         try {
-            await runResearch(ideaId);
+            await runResearchStream(ideaId, (chunk) => {
+                setResearchProgress((prev) => prev + chunk);
+            });
             void reloadIdeas();
         } catch {
             // silent — ideas will still show without research
         } finally {
             setResearchingId(null);
+            setResearchProgress("");
         }
     };
 
@@ -99,12 +104,6 @@ export default function App() {
                     submitting={submitting}
                     lastVerdict={lastVerdict}
                     verdictError={verdictError}
-                    userState={userState}
-                    onEmotion={setEmotion}
-                    onToggleCalendar={toggleCalendar}
-                    onAddTodo={addTodo}
-                    onRemoveTodo={removeTodo}
-                    onSchedule={setSchedule}
                 />
             ) : (
                 <InboxScreen
@@ -116,6 +115,13 @@ export default function App() {
                     dumpIdeas={dumpIdeas}
                     onRunResearch={handleRunResearch}
                     researchingId={researchingId}
+                    researchProgress={researchProgress}
+                    userState={userState}
+                    onEmotion={setEmotion}
+                    onToggleCalendar={toggleCalendar}
+                    onAddTodo={addTodo}
+                    onRemoveTodo={removeTodo}
+                    onSchedule={setSchedule}
                 />
             )}
         </>

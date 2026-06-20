@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from typing import AsyncIterator
 
 from copilot import CopilotClient, PermissionHandler
-from copilot.generated.session_events import SessionEventType
 from copilot.tools import define_tool
 from pydantic import BaseModel, Field
 
