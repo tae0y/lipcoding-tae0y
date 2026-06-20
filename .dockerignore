@@ -1,0 +1,32 @@
+# SQLite DB 및 런타임 데이터는 이미지에 포함하지 않는다 (컨테이너에서 새로 생성)
+backend/data/
+data/
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/*.db-journal
+**/*.db-wal
+**/*.db-shm
+
+# Python 가상환경 / 캐시
+backend/.venv/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+
+# 노드 의존성 / 빌드 산출물 (멀티스테이지 빌드에서 재생성)
+frontend/node_modules/
+frontend/dist/
+
+# 비밀/환경 파일
+**/.env
+**/.env.*
+
+# 개발 도구 / 메타
+.git/
+.github/
+.vscode/
+docs/
+infra/
+scripts/
+**/.DS_Store
