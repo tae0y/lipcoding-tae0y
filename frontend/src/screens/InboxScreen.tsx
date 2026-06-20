@@ -68,7 +68,7 @@ export default function InboxScreen({
                             </CardContent>
                         </Card>
                     ) : suggestion ? (
-                        <Card className="border-neutral-300">
+                        <Card className="border-transparent bg-white shadow-[0_12px_44px_-16px_rgba(99,102,241,0.45)] ring-1 ring-inset ring-indigo-200">
                             <CardHeader>
                                 <CardTitle className="text-base">
                                     {suggestion.idea?.text ?? suggestion.ideaId}
@@ -92,7 +92,7 @@ export default function InboxScreen({
                                     <Badge>{suggestion.decision}</Badge>
                                 ) : (
                                     <div className="flex flex-wrap gap-2">
-                                        <Button onClick={() => onDecide("accepted")}>
+                                        <Button variant="gradient" onClick={() => onDecide("accepted")}>
                                             지금 해볼게요
                                         </Button>
                                         <Button variant="outline" onClick={() => onDecide("postponed")}>
