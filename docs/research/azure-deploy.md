@@ -5,7 +5,39 @@
 출처: [.github/skills/azure-static-web-apps/SKILL.md](../../.github/skills/azure-static-web-apps/SKILL.md),
 [.github/skills/azure-deployment-preflight/SKILL.md](../../.github/skills/azure-deployment-preflight/SKILL.md).
 
-## 결론: App Service 단일 앱
+---
+
+## 진행 현황 (2026-06-20)
+
+### Container Apps 경로 — 스켈레톤 완성, 이미지 빌드 완료
+
+App Service(`lipcoding-tae0yp`)가 응답 불가 상태여서 Container Apps로 배포 경로 전환.
+
+| 단계 | 상태 | 비고 |
+|---|---|---|
+| `Microsoft.App` 공급자 등록 | ✅ 완료 | `Microsoft.OperationalInsights`, `Microsoft.ContainerRegistry` 포함 |
+| ACR `lipcodingabk8` 생성 | ✅ 완료 | eastus2, Basic SKU |
+| Docker 이미지 빌드 & 푸시 | ✅ 완료 | ACR Tasks (ch2), `lipcoding-api:latest` |
+| Bicep 배포 (`infra/main.bicep`) | ⏳ 다음 단계 | `bash scripts/deploy-aca.sh` 실행 필요 |
+
+**재배포 명령:**
+```bash
+export AZURE_OPENAI_API_KEY="..."   # 또는 source backend/.env
+ACR_NAME=lipcodingabk8 bash scripts/deploy-aca.sh
+```
+
+### 생성된 인프라 파일
+
+| 파일 | 역할 |
+|---|---|
+| `Dockerfile` | 멀티스테이지: node→Vite빌드 + python:3.12-slim |
+| `infra/main.bicep` | ACR + LogAnalytics + CA Env + Container App |
+| `infra/main.bicepparam` | 파라미터 (API 키는 `readEnvironmentVariable` |
+| `scripts/deploy-aca.sh` | 공급자 등록→ACR빌드→Bicep 배포→헬스체크 자동화 |
+
+---
+
+## 결론: App Service 단일 앱 (초기 계획)
 
 **FastAPI 백엔드가 빌드된 SPA 정적 파일을 함께 서빙**하고, `az webapp up` 으로 하나의
 App Service에 배포한다. 네이티브 Python, Docker 없음, Functions 래핑 없음.
