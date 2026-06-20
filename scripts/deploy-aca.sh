@@ -55,13 +55,15 @@ fi
 IMAGE="${ACR_LOGIN_SERVER}/${APP_NAME}:${IMAGE_TAG}"
 log "이미지 경로: $IMAGE"
 
-# ── 5. 이미지 빌드 + 푸시 (ACR Tasks — 로컬 Docker 불필요) ──────────────────
-log "이미지 빌드 + 푸시: $IMAGE"
-az acr build \
-  --registry "$ACR_NAME" \
-  --image "$APP_NAME:$IMAGE_TAG" \
-  --file "$ROOT/Dockerfile" \
-  "$ROOT"
+# ── 5. 이미지 빌드 + 푸시 (로컬 Docker) ─────────────────────────────────────
+log "ACR 로그인: $ACR_NAME"
+az acr login -n "$ACR_NAME"
+
+log "로컬 Docker 빌드: $IMAGE"
+docker build --platform linux/amd64 -t "$IMAGE" -f "$ROOT/Dockerfile" "$ROOT"
+
+log "이미지 푸시: $IMAGE"
+docker push "$IMAGE"
 
 # ── 6. Bicep 배포 ────────────────────────────────────────────────────────────
 AOAI_ENDPOINT=$(az cognitiveservices account show \

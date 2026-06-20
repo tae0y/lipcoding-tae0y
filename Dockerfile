@@ -11,6 +11,17 @@ RUN npm run build
 FROM python:3.12-slim
 WORKDIR /app
 
+# Copilot SDK 런타임: Node 20 + GitHub Copilot CLI(@github/copilot).
+# CLI는 COPILOT_PROVIDER_BASE_URL(BYOK)이 있으면 GitHub 인증 없이 Azure/Foundry로 동작.
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    npm install -g @github/copilot && \
+    npm cache clean --force && \
+    apt-get purge -y --auto-remove gnupg && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV COPILOT_AUTO_UPDATE=false
+
 # 의존성 먼저 (레이어 캐시 활용)
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
