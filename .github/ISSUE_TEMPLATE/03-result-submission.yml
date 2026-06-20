@@ -1,0 +1,81 @@
+name: 🚀 결과 제출
+description: 앱을 심사에 제출합니다.
+title: "[submit] <앱 이름>"
+labels: ["submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 천하제일 입코딩 대회 — 결과 제출
+
+        - 제출 마감 시각은 한국 시각 기준 2026년 6월 20일 16시 30분입니다. 이 시각 이후에는 제출이 불가능하니, 마감 전에 제출을 완료해주세요.
+        - 결과 제출은 최대 2회까지 가능합니다. 최종 평가 결과는 가장 나중에 제출한 이슈의 내용으로 판단합니다.
+        - 제출 시, 깃헙 리포지토리 URL과 앱 배포 URL에 접근이 가능한지 반드시 확인하세요.
+        - 여러분이 제출한 앱은 AI 심사 에이전트가 자동으로 심사합니다.
+        - 심사 과정에서 깃헙 리포지토리에 있는 `PRD.md` 파일의 내용과 앱의 실제 동작을 기반으로 평가가 이루어집니다. 따라서 제출 전에 `PRD.md`가 명확하고 최신인지, 그리고 앱이 정상적으로 배포되어 있는지 꼭 확인하세요.
+
+  - type: input
+    id: appTitle
+    attributes:
+      label: 앱 제목
+      description: 전광판에 보이는 앱 제목입니다.
+      placeholder: FocusFlow
+    validations:
+      required: true
+
+  - type: input
+    id: repositoryUrl
+    attributes:
+      label: 리포지토리 URL
+      description: |
+        공개 깃헙 리포지토리 URL로 **루트**에 반드시 `PRD.md` 파일이 있어야 합니다.
+        AI 심사 에이전트는 이 파일을 앱의 목적에 대한 진실의 출처(Source of Truth)로 사용합니다.
+      placeholder: https://github.com/team-hubber/focusflow
+    validations:
+      required: true
+
+  - type: input
+    id: commitHash
+    attributes:
+      label: 커밋 해시
+      description: |
+        제출할 앱의 특정 커밋 해시를 입력하세요. 이 커밋을 기준으로 심사를 진행합니다.
+      placeholder: abc123def456
+    validations:
+      required: true
+
+  - type: input
+    id: deploymentUrl
+    attributes:
+      label: 배포 URL
+      description: |
+        공개적으로 접근 가능한 앱의 URL로, 심사 에이전트가 이 URL을 통해 E2E 검사를 수행합니다.
+        반드시 Azure 클라우드에 배포한 앱이어야 하며, localhost 또는 비공개 URL은 실패합니다.
+      placeholder: https://focusflow.azurewebsites.net
+    validations:
+      required: true
+
+  - type: textarea
+    id: appDetails
+    attributes:
+      label: 앱 세부 정보 (선택 사항)
+      description: |
+        앱에 대한 자유 형식 설명입니다. 이는 AI 심사 에이전트가 추가 컨텍스트로 사용할 수 있습니다.
+        리포지토리나 PRD에서 명확하지 않은 사항을 강조하세요.
+      placeholder: |
+        FocusFlow is a Pomodoro timer that learns your attention patterns and adjusts
+        session lengths automatically. Built with the Copilot SDK and Azure AI Foundry.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: 확인 사항
+      options:
+        - label: 제출한 깃헙 리포지토리 루트에 `PRD.md` 파일이 있습니다.
+          required: true
+        - label: 배포 URL이 공개적으로 접근 가능합니다.
+          required: true
+        - label: 결과 제출은 최대 2회까지 가능하며, 가장 나중에 제출한 이슈를 기준으로 평가를 수행한다는 것을 이해했습니다.
+          required: true
