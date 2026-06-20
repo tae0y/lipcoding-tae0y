@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ian Xiaohei Real-Object Scenes"
+  short_description: "Generate Xiaohei + real objects + whitespace narrative article images or long-scroll story images"
+  default_prompt: "Use $real-object-illustrations to design and generate several Xiaohei + real objects + physical action 16:9 article illustrations for this content; if the user requests bonus mode or a long-scroll story image, generate an ultra-wide Xiaohei long-scroll story image."
+policy:
+  allow_implicit_invocation: true
