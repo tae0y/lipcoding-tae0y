@@ -26,3 +26,32 @@ CORS_ORIGINS: list[str] = os.environ.get(
 # 빌드된 SPA 정적 파일 위치 (frontend `vite build` → backend/static).
 # 단일 App Service에서 같은 오리진으로 서빙 → CORS 불필요.
 STATIC_DIR: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+
+
+def configure_copilot_cli_byok() -> None:
+    """Copilot CLI(자식 프로세스)의 BYOK(custom provider)를 **opt-in**으로 구성한다.
+
+    CLI는 ``COPILOT_PROVIDER_BASE_URL`` 이 설정돼 있을 때만 BYOK 모드로 전환된다
+    (이때 GitHub 인증 불필요). 이 함수는 그 base_url 이 **명시적으로 주어졌을 때만**
+    나머지 동반 설정(type/api_key/api_version/model)을 ``AZURE_OPENAI_*`` 로부터
+    ``setdefault`` 로 채운다.
+
+    주의: base_url 을 무조건 자동 설정하면 SDK가 구동하는 CLI의 기본 경로(에이전트
+    도구 오케스트레이션)가 비어버리는 것을 확인했다. 따라서 기본값으로는 건드리지
+    않고, 운영자가 ``COPILOT_PROVIDER_BASE_URL`` 을 직접 주입해 **대체(override)**
+    하려는 경우에만 동작한다.
+    """
+    base_url = os.environ.get("COPILOT_PROVIDER_BASE_URL", "").strip()
+    if not base_url:
+        return  # BYOK 미활성 → 기본 SDK 경로 유지(로컬 GitHub 인증/세션 provider)
+    os.environ.setdefault("COPILOT_PROVIDER_TYPE", "azure")
+    api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+    if api_key:
+        os.environ.setdefault("COPILOT_PROVIDER_API_KEY", api_key)
+    os.environ.setdefault(
+        "COPILOT_PROVIDER_AZURE_API_VERSION",
+        os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21"),
+    )
+    deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT")
+    if deployment:
+        os.environ.setdefault("COPILOT_MODEL", deployment)

@@ -41,6 +41,10 @@ from app.models import (
     WeeklyTriggerResult,
 )
 
+# Copilot CLI(자식 프로세스)를 BYOK로 구성해 GitHub 인증 없이 Azure/Foundry로 동작.
+# import 시점에 1회 실행 → 각 워커 프로세스 env에 반영(이후 spawn되는 CLI가 상속).
+config.configure_copilot_cli_byok()
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
