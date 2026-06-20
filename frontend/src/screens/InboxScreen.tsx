@@ -8,6 +8,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
+import { WaitingProgress, RESEARCH_PHRASES } from "../components/WaitingProgress";
 import { TopNav } from "../components/TopNav";
 
 interface InboxScreenProps {
@@ -188,9 +189,9 @@ export default function InboxScreen({
                                                 <div className="flex items-center gap-2 shrink-0">
                                                     {idea.dumpReason ? (
                                                         <Badge>
-                                                            {DUMP_REASON_LABEL[
-                                                                idea.dumpReason
-                                                            ] ?? idea.dumpReason}
+                                                            {idea.dumpReason === "info_gap" && idea.research
+                                                                ? "사전조사 완료"
+                                                                : DUMP_REASON_LABEL[idea.dumpReason] ?? idea.dumpReason}
                                                         </Badge>
                                                     ) : null}
                                                     {onDeleteIdea && (
@@ -213,6 +214,13 @@ export default function InboxScreen({
                                                 >
                                                     {researchingId === idea.id ? "조사 중…" : "사전조사 실행"}
                                                 </Button>
+                                            ) : null}
+                                            {researchingId === idea.id ? (
+                                                <WaitingProgress
+                                                    active
+                                                    phrases={RESEARCH_PHRASES}
+                                                    className="mt-1"
+                                                />
                                             ) : null}
                                             {researchingId === idea.id && researchProgress ? (
                                                 <p className="mt-1 whitespace-pre-wrap text-xs text-neutral-500">

@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Card, CardContent } from "../components/ui/card";
 import { Skeleton } from "../components/ui/skeleton";
+import { WaitingProgress } from "../components/WaitingProgress";
 import { TopNav } from "../components/TopNav";
 
 const EMOTIONS: Array<{ value: Emotion; label: string }> = [
@@ -74,6 +75,7 @@ export default function CaptureScreen({
                             {submitting ? "담는 중…" : "담기"}
                         </Button>
                     </div>
+                    <WaitingProgress active={submitting} />
                 </section>
 
                 <section className="space-y-3">
