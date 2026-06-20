@@ -7,7 +7,7 @@ function cx(...parts: Array<string | undefined>): string {
 export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     return (
         <div
-            className={cx("animate-pulse rounded-md bg-neutral-100", className)}
+            className={cx("animate-pulse rounded-md bg-[rgba(243,236,222,0.12)]", className)}
             {...props}
         />
     );

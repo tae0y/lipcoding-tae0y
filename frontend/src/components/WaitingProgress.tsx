@@ -70,17 +70,17 @@ export function WaitingProgress({
     return (
         <div className={`space-y-2 ${className}`} role="status" aria-live="polite">
             <div className="flex items-center justify-between gap-3 text-xs">
-                <span className="text-neutral-600">{phrases[idx]}</span>
-                <span className="shrink-0 tabular-nums text-neutral-400">{elapsed}s</span>
+                <span className="text-[rgba(243,236,222,0.68)]">{phrases[idx]}</span>
+                <span className="shrink-0 tabular-nums text-[rgba(243,236,222,0.40)]">{elapsed}s</span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[rgba(243,236,222,0.12)]">
                 <div
-                    className="h-full rounded-full bg-neutral-900 transition-[width] duration-500 ease-out"
+                    className="h-full rounded-full bg-[#e8252a] transition-[width] duration-500 ease-out"
                     style={{ width: `${pct}%` }}
                 />
             </div>
             {elapsed >= 8 ? (
-                <p className="text-[11px] text-neutral-400">
+                <p className="text-[11px] text-[rgba(243,236,222,0.45)]">
                     AI가 처음엔 살짝 느릴 수 있어요. 거의 다 왔어요…
                 </p>
             ) : null}

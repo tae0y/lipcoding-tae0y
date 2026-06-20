@@ -12,16 +12,20 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
+    /* solid white — matches Color Halftone primary button */
     primary:
-        "bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 active:bg-indigo-700 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.45)]",
-    secondary: "bg-neutral-100 text-neutral-900 hover:bg-neutral-200",
+        "bg-white text-[#15120c] hover:bg-[rgba(255,255,255,0.92)] active:bg-[rgba(220,220,220,1)] shadow-[0_10px_26px_rgba(0,0,0,0.22)] hover:-translate-y-px",
+    /* glass — matches Color Halftone secondary button */
+    secondary:
+        "bg-[rgba(255,255,255,0.08)] text-white border border-[rgba(255,255,255,0.45)] hover:bg-[rgba(255,255,255,0.20)]",
     outline:
-        "border border-neutral-200 bg-white text-neutral-800 shadow-sm hover:bg-neutral-50 hover:text-neutral-900",
-    ghost: "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+        "border border-[rgba(255,255,255,0.45)] bg-transparent text-white hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.60)]",
+    ghost:
+        "text-[rgba(255,255,255,0.68)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white",
     gradient:
-        "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-[0_6px_20px_-6px_rgba(99,102,241,0.6)] hover:from-indigo-500 hover:to-violet-500 active:from-indigo-700 active:to-violet-700",
+        "bg-gradient-to-r from-[#e8252a] to-[#c9181d] text-white shadow-[0_6px_20px_-6px_rgba(232,37,42,0.55)] hover:from-[#d01f24] hover:to-[#b5151a]",
     destructive:
-        "border border-rose-200 bg-white text-rose-500 shadow-sm hover:bg-rose-50 hover:text-rose-600 active:bg-rose-100",
+        "border border-[rgba(232,37,42,0.45)] bg-[rgba(232,37,42,0.14)] text-[#f87171] hover:bg-[rgba(232,37,42,0.24)]",
 };
 
 export function Button({ className, variant = "primary", size = "md", type = "button", ...props }: ButtonProps) {
@@ -29,7 +33,7 @@ export function Button({ className, variant = "primary", size = "md", type = "bu
         <button
             type={type}
             className={cx(
-                "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950/15 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-50",
+                "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[14px] font-extrabold tracking-[0.02em] transition-all disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-1 focus-visible:ring-offset-black",
                 size === "sm" ? "px-2.5 py-1 text-xs" : "px-3.5 py-2 text-sm",
                 variants[variant],
                 className,

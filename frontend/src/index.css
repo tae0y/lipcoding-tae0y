@@ -1,4 +1,27 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import "tailwindcss";
+
+/* ── Color Halftone · Liquid Glass design tokens (bubbbly.com) ── */
+:root {
+    /* core palette — extracted from Color Halftone app */
+    --paper: #f3ecde;
+    --ink: #1f1c16;
+    --accent: #e8252a;
+    --gline: rgba(255, 255, 255, 0.45);
+    /* glass border */
+
+    /* semantic aliases */
+    --bg-primary: #000000;
+    --bg-secondary: rgba(255, 255, 255, 0.08);
+    --bg-tertiary: rgba(255, 255, 255, 0.14);
+    --fg-primary: #ffffff;
+    --fg-secondary: rgba(255, 255, 255, 0.78);
+    --fg-muted: rgba(255, 255, 255, 0.45);
+    --border: rgba(255, 255, 255, 0.30);
+    --border-focus: rgba(255, 255, 255, 0.50);
+    --accent-green: #2a9a4f;
+    --accent-red: #e8252a;
+}
 
 @layer base {
     html {
@@ -8,39 +31,30 @@
     }
 
     body {
-        @apply bg-neutral-50 text-neutral-900;
+        background-color: #000;
+        /* teal/white swirl + dark overlay — keeps the image visible while ensuring text contrast */
+        background-image:
+            linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)),
+            url('/src/assets/bg.jpg');
+        background-size: cover;
+        background-position: center top;
+        background-attachment: fixed;
+        color: var(--fg-primary);
         font-family:
-            "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
-            Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+            "Pretendard Variable", Pretendard, system-ui, -apple-system, "Segoe UI",
+            "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
         font-feature-settings: "cv11", "ss01";
     }
 
     h1,
     h2,
     h3 {
-        letter-spacing: -0.011em;
+        letter-spacing: -0.02em;
+        color: var(--fg-primary);
     }
 
     ::selection {
-        @apply bg-neutral-900 text-white;
-    }
-
-    /* A안: 상단 오로라 그라데이션 (절제된 액센트) */
-    body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 420px;
-        z-index: -1;
-        pointer-events: none;
-        background:
-            radial-gradient(60% 100% at 14% 0%,
-                rgba(99, 102, 241, 0.18),
-                transparent 60%),
-            radial-gradient(55% 100% at 88% 0%,
-                rgba(217, 70, 239, 0.14),
-                transparent 62%);
+        background-color: var(--accent);
+        color: #fff;
     }
 }

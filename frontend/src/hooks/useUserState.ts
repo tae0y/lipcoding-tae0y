@@ -60,17 +60,17 @@ export function useUserState() {
     );
 
     const setEmotion = useCallback(
-        (emotion: Emotion) => {
-            if (!userState) return;
-            void apply({ ...userState, emotion }, { emotion });
+        (emotion: Emotion): Promise<void> => {
+            if (!userState) return Promise.resolve();
+            return apply({ ...userState, emotion }, { emotion });
         },
         [userState, apply]
     );
 
-    const toggleCalendar = useCallback(() => {
-        if (!userState) return;
+    const toggleCalendar = useCallback((): Promise<void> => {
+        if (!userState) return Promise.resolve();
         const calendarBusy = !userState.calendarBusy;
-        void apply({ ...userState, calendarBusy }, { calendarBusy });
+        return apply({ ...userState, calendarBusy }, { calendarBusy });
     }, [userState, apply]);
 
     const addTodo = useCallback(

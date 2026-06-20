@@ -17,8 +17,8 @@ interface TopNavProps {
 
 export function TopNav({ active, onNavigate }: TopNavProps) {
     return (
-        <header className="sticky top-0 z-10 border-b border-neutral-200/70 bg-neutral-50/80 backdrop-blur">
-            <nav className="mx-auto flex max-w-[640px] items-center gap-1 px-4 py-2.5">
+        <header className="sticky top-0 z-10 border-b border-[rgba(255,255,255,0.30)] bg-black/80 backdrop-blur-md shadow-[inset_0_-1px_0_rgba(255,255,255,0.08)]">
+            <nav className="mx-auto flex max-w-[640px] items-center gap-1.5 px-4 py-2.5">
                 {TABS.map((tab) => {
                     const isActive = tab.key === active;
                     return (
@@ -28,15 +28,15 @@ export function TopNav({ active, onNavigate }: TopNavProps) {
                             onClick={() => onNavigate(tab.key)}
                             aria-current={isActive ? "page" : undefined}
                             className={cx(
-                                "rounded-lg px-3 py-1.5 text-left transition-colors",
+                                "rounded-full px-3 py-1.5 text-left transition-all",
                                 isActive
-                                    ? "bg-neutral-900 text-white shadow-sm"
-                                    : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900",
+                                    ? "bg-white text-[#15120c] shadow-[0_8px_20px_rgba(0,0,0,0.25)]"
+                                    : "bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.45)] text-[rgba(255,255,255,0.70)] hover:bg-[rgba(255,255,255,0.20)] hover:text-white",
                             )}
                         >
-                            <span className="block text-sm font-semibold leading-tight">{tab.label}</span>
+                            <span className="block text-sm font-extrabold leading-tight tracking-[0.01em]">{tab.label}</span>
                             {tab.sub && (
-                                <span className={cx("block text-[10px] leading-tight mt-0.5", isActive ? "text-neutral-300" : "text-neutral-400")}>
+                                <span className={cx("block text-[10px] leading-tight mt-0.5", isActive ? "text-[rgba(21,18,12,0.60)]" : "text-[rgba(255,255,255,0.42)]")}>
                                     {tab.sub}
                                 </span>
                             )}

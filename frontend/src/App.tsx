@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import CaptureScreen from "./screens/CaptureScreen";
 import InboxScreen from "./screens/InboxScreen";
 import SettingsScreen from "./screens/SettingsScreen";
@@ -43,6 +43,16 @@ export default function App() {
         refresh: refreshSuggestion,
     } = useSuggestion();
 
+    const handleEmotion = useCallback(async (emotion: Parameters<typeof setEmotion>[0]) => {
+        await setEmotion(emotion);
+        void refreshSuggestion();
+    }, [setEmotion, refreshSuggestion]);
+
+    const handleToggleCalendar = useCallback(async () => {
+        await toggleCalendar();
+        void refreshSuggestion();
+    }, [toggleCalendar, refreshSuggestion]);
+
     const connectionError = ideasError || userStateError || suggestionError;
 
     const handleRetry = () => {
@@ -76,15 +86,15 @@ export default function App() {
     };
 
     const banner = connectionError ? (
-        <div className="bg-red-50 text-red-700">
+        <div className="border-b border-[rgba(232,37,42,0.35)] bg-[rgba(232,37,42,0.12)] backdrop-blur-md text-white">
             <div className="mx-auto flex max-w-[640px] items-center justify-between gap-3 px-4 py-2 text-sm">
-                <span>
+                <span className="text-[rgba(255,255,255,0.90)]">
                     서버 연결이 불안정해요. 입력은 저장되며 일부 정보가 안 보일 수 있어요.
                 </span>
                 <button
                     type="button"
                     onClick={handleRetry}
-                    className="shrink-0 rounded-md border border-red-200 bg-white px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+                    className="shrink-0 rounded-full border border-[rgba(255,255,255,0.45)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-xs font-extrabold text-white hover:bg-[rgba(255,255,255,0.20)] transition-colors"
                 >
                     다시 시도
                 </button>
@@ -103,8 +113,8 @@ export default function App() {
                     onSubmit={handleSubmit}
                     submitting={submitting}
                     userState={userState}
-                    onEmotion={setEmotion}
-                    onToggleCalendar={toggleCalendar}
+                    onEmotion={handleEmotion}
+                    onToggleCalendar={handleToggleCalendar}
                     onAddTodo={addTodo}
                     onRemoveTodo={removeTodo}
                 />

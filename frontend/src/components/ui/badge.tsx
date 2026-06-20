@@ -11,8 +11,11 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variants: Record<Variant, string> = {
-    secondary: "border border-neutral-200 bg-neutral-50 text-neutral-600",
-    destructive: "border border-red-200 bg-red-50 text-red-600",
+    /* pill tag — matches HALFTONE / ORIGINAL label from Color Halftone */
+    secondary:
+        "border border-[rgba(0,0,0,0.12)] bg-[rgba(255,255,255,0.70)] text-[#1f1c16]",
+    destructive:
+        "border border-[rgba(232,37,42,0.45)] bg-[rgba(232,37,42,0.14)] text-[#f87171]",
 };
 
 export function Badge({ className, variant = "secondary", ...props }: BadgeProps) {

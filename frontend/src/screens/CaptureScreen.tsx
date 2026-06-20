@@ -8,9 +8,9 @@ import { WaitingProgress } from "../components/WaitingProgress";
 import { TopNav } from "../components/TopNav";
 
 const EMOTIONS: Array<{ value: Emotion; label: string }> = [
-    { value: "bad", label: "나쁨" },
-    { value: "normal", label: "보통" },
-    { value: "good", label: "좋음" },
+    { value: "bad", label: "😶 안개" },
+    { value: "normal", label: "🌊 잔잔" },
+    { value: "good", label: "☀️ 화창" },
 ];
 
 interface CaptureScreenProps {
@@ -54,10 +54,10 @@ export default function CaptureScreen({
             <main className="mx-auto max-w-[640px] px-4 py-10 space-y-12">
                 <section className="space-y-6">
                     <div className="space-y-1.5">
-                        <h2 className="text-xl font-semibold tracking-tight text-neutral-900">
+                        <h1 className="text-2xl font-extrabold tracking-tight text-white">
                             지금 떠오른 생각, 한 줄로
-                        </h2>
-                        <p className="text-sm text-neutral-500">
+                        </h1>
+                        <p className="text-sm text-[rgba(255,255,255,0.55)]">
                             담아두고 머릿속을 비우세요. 중요한 일에 집중하세요.
                         </p>
                     </div>
@@ -79,9 +79,9 @@ export default function CaptureScreen({
                 </section>
 
                 <section className="space-y-3">
-                    <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
-                        <span className="h-2 w-2 rounded-full bg-sky-400" />
-                        <h2 className="text-sm font-semibold tracking-tight text-neutral-900">
+                    <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.20)] pb-2">
+                        <span className="h-2 w-2 rounded-full bg-[#e8252a]" />
+                        <h2 className="text-xl font-extrabold tracking-tight text-white">
                             오늘 상태
                         </h2>
                     </div>
@@ -96,7 +96,7 @@ export default function CaptureScreen({
                             ) : (
                                 <>
                                     <div className="space-y-2">
-                                        <p className="text-xs font-medium text-neutral-500">기분</p>
+                                        <p className="text-xs font-bold text-[rgba(255,255,255,0.45)]">기분</p>
                                         <div className="flex gap-2">
                                             {EMOTIONS.map((e) => (
                                                 <Button
@@ -113,7 +113,7 @@ export default function CaptureScreen({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <p className="text-xs font-medium text-neutral-500">저녁</p>
+                                        <p className="text-xs font-bold text-[rgba(255,255,255,0.45)]">저녀</p>
                                         <div className="flex items-center gap-2">
                                             <Button
                                                 variant={!userState.calendarBusy ? "primary" : "outline"}
@@ -122,24 +122,24 @@ export default function CaptureScreen({
                                             >
                                                 {!userState.calendarBusy ? "☑" : "☐"} 저녁 비었음
                                             </Button>
-                                            <span className="text-xs text-neutral-500">
+                                            <span className="text-xs text-[#6a6a72]">
                                                 (끄면 = 약속 있음)
                                             </span>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <p className="text-xs font-medium text-neutral-500">할일</p>
+                                        <p className="text-xs font-bold text-[rgba(255,255,255,0.45)]">할일</p>
                                         <ul className="space-y-1">
                                             {userState.todos.map((todo, i) => (
                                                 <li
                                                     key={i}
                                                     className="flex items-center justify-between gap-2 text-sm"
                                                 >
-                                                    <span className="text-neutral-800">{todo}</span>
+                                                    <span className="text-[rgba(255,255,255,0.90)]">{todo}</span>
                                                     <Button
                                                         variant="ghost"
-                                                        className="px-2 py-1 text-neutral-400"
+                                                        className="px-2 py-1 text-[rgba(255,255,255,0.45)]"
                                                         aria-label="할일 삭제"
                                                         onClick={() => onRemoveTodo(i)}
                                                     >
@@ -157,7 +157,7 @@ export default function CaptureScreen({
                                                     if (e.key === "Enter") handleAddTodo();
                                                 }}
                                                 placeholder="할일 추가…"
-                                                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+                                                className="w-full rounded-[14px] border border-[rgba(255,255,255,0.45)] bg-[rgba(255,255,255,0.08)] px-3 py-2 text-sm font-semibold text-white placeholder:text-[rgba(255,255,255,0.38)] focus:outline-none focus:ring-2 focus:ring-white/15"
                                             />
                                             <Button variant="secondary" onClick={handleAddTodo}>
                                                 + 추가

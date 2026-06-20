@@ -22,9 +22,9 @@ export default function SettingsScreen({
 
             <main className="mx-auto max-w-[640px] px-4 py-10 space-y-12">
                 <section className="space-y-3">
-                    <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
-                        <span className="h-2 w-2 rounded-full bg-neutral-400" />
-                        <h2 className="text-sm font-semibold tracking-tight text-neutral-900">
+                    <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.20)] pb-2">
+                        <span className="h-2 w-2 rounded-full bg-[#e8252a]" />
+                        <h2 className="text-xl font-extrabold tracking-tight text-white">
                             주간 추천 시각
                         </h2>
                     </div>
@@ -44,7 +44,7 @@ export default function SettingsScreen({
                                                 )
                                             }
                                             aria-label="요일"
-                                            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+                                            className="rounded-[14px] border border-[rgba(255,255,255,0.45)] bg-[rgba(255,255,255,0.08)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20 [color-scheme:dark]"
                                         >
                                             {WEEKDAYS.map((label, i) => (
                                                 <option key={i} value={i}>
@@ -62,10 +62,10 @@ export default function SettingsScreen({
                                                 )
                                             }
                                             aria-label="시각"
-                                            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+                                            className="rounded-[14px] border border-[rgba(255,255,255,0.45)] bg-[rgba(255,255,255,0.08)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20 [color-scheme:dark]"
                                         />
                                     </div>
-                                    <p className="text-xs text-neutral-500">
+                                    <p className="text-xs text-[rgba(255,255,255,0.45)]">
                                         (퇴근 + 20~30분 버퍼 권장)
                                     </p>
                                 </>

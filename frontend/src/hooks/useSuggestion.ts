@@ -23,14 +23,21 @@ export function useSuggestion() {
     const refresh = useCallback(async () => {
         setLoading(true);
         try {
-            await load();
+            const current = await getCurrentSuggestion();
+            // Re-run trigger when no suggestion or no decision yet (state may have changed)
+            if (!current || !current.decision) {
+                const result = await runWeeklyTrigger();
+                setSuggestion(result.suggestion ?? null);
+            } else {
+                setSuggestion(current);
+            }
             setError(null);
         } catch (e) {
             setError(e instanceof Error ? e.message : "추천을 불러오지 못했어요");
         } finally {
             setLoading(false);
         }
-    }, [load]);
+    }, []);
 
     useEffect(() => {
         let active = true;
