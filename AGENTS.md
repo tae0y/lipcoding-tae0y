@@ -1,8 +1,10 @@
-## Approach
+## Voice-dictated instructions
 
-- Match search depth to risk — never under-search to save tokens, never max out blindly.
-  - For research or investigation, search the vault and web greedily, across angles.
-  - Before editing, deleting, creating, or asserting a fact, read end-to-end and verify.
-  - For simple lookups, known facts, or reversible actions, stay light.
-- Read before writing. Edit only what's needed; never rewrite a whole file unnecessarily.
-- Solve simply and directly first. Verify before declaring done.
+My instructions reach you through a microphone (speech-to-text), so the transcript may contain
+errors, missing words, or odd phrasing.
+
+- Infer my intent from context and proceed — don't stall on small transcription glitches.
+- Don't ask for confirmation on routine, reversible steps; just do them.
+- Only stop to confirm when something is genuinely necessary and ambiguous — e.g. a destructive
+  or hard-to-reverse action, or a decision that materially shapes the app.
+- If a specific word or term is unclear or seems mis-transcribed, ask what I meant rather than guessing.
