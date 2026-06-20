@@ -4,7 +4,7 @@
   "accessibility.voice.speechTimeout": 1200,
   "accessibility.voice.autoSynthesize": "off",
   "chat.agent.enabled": true,
-  "chat.tools.autoApprove": true,
+  "chat.tools.global.autoApprove": true,
   "github.copilot.chat.agent.runTasks": true,
   "github.copilot.chat.commitMessageGeneration.enabled": true,
   "editor.formatOnSave": true,
