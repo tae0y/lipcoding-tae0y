@@ -1,46 +1,74 @@
 <div align="center">
 
-# 작업기억 인박스
+# Working Memory Inbox
 
-**떠오른 생각은 던지고, 머리는 비우세요.**
+**Throw the thought down, and keep your head clear.**
 
-아이디어를 한 줄로 던지면 AI가 지금 시작할 수 있는 일과 아직 익지 않은 일을
-가려내고, 부족한 정보는 대신 조사해 둡니다. 무엇을 할지 정하는 건 언제나 당신.
+Some ideas are ready to start the moment they arrive. Others need time to ripen.
 
 </div>
 
 ---
 
-사람이 한 번에 붙들 수 있는 생각은 5±2개뿐입니다. "나중에 해봐야지" 하는
-아이디어를 머릿속에 쌓아두는 순간 그 한정된 자리를 잃습니다. 작업기억 인박스는
-그 짐을 대신 들어주되, 판단과 실행이라는 사람의 몫은 건드리지 않습니다 — AI는
-바닥만 깔고, 결정은 당신이 합니다.
+Drop an idea in a single line. What you can start now stays in front of you; what
+isn't ripe yet is set aside — and while you're not looking, the AI quietly does the
+legwork so it's ready when the time comes. Deciding what to actually do is always yours.
 
-## 어떻게 동작하나요
-
-1. **던진다** — 떠오른 생각을 한 줄로 적습니다.
-2. **가린다** — 지금 바로 시작할 수 있으면 **할 일**로, 아직 모호하면 **보관함**으로.
-3. **채운다** — 정보가 부족해 보관된 건 AI가 재료와 선택지를 대신 정리해 둡니다.
-4. **권한다** — 한가한 저녁, 일주일에 한 번 "이거 해볼까요?" 딱 한 가지를 꺼내 줍니다.
-
-> 마지막 결정 버튼은 항상 사람의 손에 있습니다. AI는 "이렇게 하라"고 정하지
-> 않고, 고를 수 있는 재료만 펼쳐 둡니다.
-
-## 두 개의 화면
-
-- **입력** — 아이디어 한 줄과 오늘의 상태(기분 · 저녁 일정 · 할 일).
-- **조회** — 이번 주 추천 → 지금 할 수 있는 일 → 보관함을, 한 번의 스크롤로.
-
-## 시작하기
+## Getting Started
 
 ```bash
-# 백엔드
+# backend
 cd backend && pip install -r requirements.txt
 uvicorn app.main:app --reload          # http://localhost:8000
 
-# 프론트엔드
+# frontend
 cd frontend && npm ci && npm run dev    # http://localhost:5173
 ```
 
-기술 스택은 React · FastAPI · Azure OpenAI. 자세한 설계와 API 계약은
-[docs/](docs)에 정리되어 있습니다.
+Open `http://localhost:5173`, then jot down whatever just crossed your mind.
+Azure deployment is covered in [docs/architecture.md](docs/architecture.md).
+
+## How It Works
+
+1. **Throw** — write a passing thought in one line.
+2. **Set aside** — if it's ready to start, it stays as a **To Do**; if it's still
+   half-formed, it rests in the **Dump** instead of crowding your head.
+3. **Prepare, quietly** — behind the scenes, the AI gathers the missing materials and
+   options, so a set-aside idea keeps ripening without you tending it.
+4. **Offer** — when a quiet evening comes around, it brings back exactly one — already
+   prepped — and asks: "Want to try this?"
+
+There are only two screens. **Capture** holds one idea line plus today's state
+(mood · evening availability · todos). **Inbox** unrolls this week's suggestion →
+what you can start now → the dump, in a single scroll. The final decision button is
+always in human hands — the AI never says "do this," it only lays out materials you
+can choose from.
+
+Built with React · FastAPI · Azure OpenAI. How the Copilot SDK is used and the
+deployment architecture live in [docs/architecture.md](docs/architecture.md); the
+rest of the design and the API contract live in [docs/](docs).
+
+## Roadmap
+
+- Rank the weekly suggestion by interest-embedding similarity as the dump grows
+- Enrich research output with richer materials and links
+- Public deployment on Azure App Service
+
+## Background Story
+
+As productivity grows, so does the pile of things to do — yet the working memory a
+person can hold at once is still just 5±2 slots. The moment you stack "I'll get to it
+later" ideas in your head, you lose one of those slots. But hand everything to the AI,
+and the very capacity to plan, judge, and synthesize withers along with it.
+
+> **Why a handful?** Cognitive research has long held that working memory holds only a
+> few items at once. George Miller's classic estimate was 7±2
+> ([Miller, 1956](https://psychclassics.yorku.ca/Miller/)); later work narrowed it to
+> about 4, roughly 3–5
+> ([Cowan, 2001](https://doi.org/10.1017/S0140525X01003922)). Either way, the ceiling
+> is small — which is exactly the slot this app tries to protect.
+
+So this app draws a line. The AI carries the burdensome research and tidying, but never
+touches the part that is yours: deciding what to do and when. It empties your working
+memory while preserving your capacity — and slips you just one thing only when your
+load has eased.
