@@ -14,8 +14,9 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from sse_starlette.sse import EventSourceResponse
 
 from app import config, db
 from app.judgment import judge_idea
@@ -143,7 +144,57 @@ def delete_idea(idea_id: str) -> Response:
     return Response(status_code=204)
 
 
-# --- UserState -------------------------------------------------------------
+# --- Research --------------------------------------------------------------
+
+
+@app.post(
+    f"{config.API_PREFIX}/ideas/{{idea_id}}/research",
+    tags=["research"],
+)
+async def run_research(
+    idea_id: str,
+    stream: bool = Query(default=False),
+) -> Response:
+    """info_gap 덤프 항목 AI 사전조사 실행.
+
+    stream=false(기본): Research JSON 반환.
+    stream=true: SSE 스트림 — 진행 이벤트 + 최종 result 이벤트.
+    """
+    from app.research import generate_research, generate_research_stream
+
+    idea = db.get_idea(idea_id)
+    if idea is None:
+        raise HTTPException(status_code=404, detail="아이디어를 찾을 수 없음")
+    if idea.dumpReason != DumpReason.info_gap:
+        raise HTTPException(status_code=409, detail="사전조사 대상이 아님(info_gap 아님)")
+
+    if not stream:
+        from fastapi.responses import JSONResponse
+
+        research = await generate_research(idea.text)
+        db.update_idea(idea.model_copy(update={"research": research}))
+        return JSONResponse(content=research.model_dump(mode="json"))
+
+    # SSE 스트리밍
+    async def sse_generator():
+        import json as _json
+
+        result_research = None
+        async for event in generate_research_stream(idea.text):
+            yield event
+            if isinstance(event, dict) and event.get("event") == "result":
+                try:
+                    from app.models import Research
+                    result_research = Research.model_validate(_json.loads(event["data"]))
+                except Exception:
+                    pass
+        if result_research:
+            db.update_idea(idea.model_copy(update={"research": result_research}))
+
+    return EventSourceResponse(sse_generator())
+
+
+
 
 
 @app.get(f"{config.API_PREFIX}/user-state", response_model=UserState, tags=["user-state"])
@@ -242,7 +293,14 @@ class _SPAStaticFiles(StaticFiles):
     """클라이언트 라우트 딥링크(404)는 index.html로 폴백."""
 
     async def get_response(self, path: str, scope):  # type: ignore[override]
-        response = await super().get_response(path, scope)
+        from starlette.exceptions import HTTPException as StarletteHTTPException
+
+        try:
+            response = await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code == 404:
+                return await super().get_response("index.html", scope)
+            raise
         if response.status_code == 404:
             return await super().get_response("index.html", scope)
         return response

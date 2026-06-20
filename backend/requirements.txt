@@ -1,0 +1,8 @@
+# Azure App Service (Oryx) 빌드용 런타임 의존성.
+# 로컬 개발은 uv/pyproject.toml 사용. 이 파일은 배포(az webapp up) 전용.
+fastapi>=0.115
+uvicorn[standard]>=0.32
+pydantic>=2.9
+openai>=1.54
+gunicorn>=23.0
+sse-starlette>=1.6

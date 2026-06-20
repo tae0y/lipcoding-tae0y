@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 
 import pytest
@@ -14,6 +15,12 @@ from fastapi.testclient import TestClient
 
 from app import config
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def skip_sdk_in_tests(monkeypatch):
+    """테스트에서는 실제 Copilot SDK 호출을 건너뛰고 휴리스틱을 사용한다."""
+    monkeypatch.setenv("SKIP_COPILOT_SDK", "1")
 
 
 @pytest.fixture

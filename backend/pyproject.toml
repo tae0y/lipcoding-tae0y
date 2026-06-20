@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn[standard]>=0.32",
     "pydantic>=2.9",
     "openai>=1.54",
+    "sse-starlette>=3.4.4",
 ]
 
 [tool.uv]
