@@ -430,3 +430,12 @@ FodyWeavers.xsd
 *.msp
 
 .DS_Store
+
+# --- lipcoding project (backend/frontend) ---
+backend/.venv/
+backend/data/
+data/
+*.db
+.env
+frontend/node_modules/
+frontend/dist/
