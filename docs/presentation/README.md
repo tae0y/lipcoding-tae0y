@@ -8,6 +8,6 @@ index below explains why each file exists.
 | Document | Why it exists |
 |------|------|
 | [demo-scenario.md](demo-scenario.md) | The live demo script (five scenes + backup plan) to show the value in three minutes. |
-| [build_deck.py](build_deck.py) | A script that generates the presentation slides (.pptx). |
+| [slides.html](slides.html) | The pitch deck — a self-contained HTML + vanilla-JS slideshow (no build, no dependencies). Open in a browser; navigate with arrow keys or click. |
 
 Related: [../plan/competition-plan.md](../plan/competition-plan.md) · [../architecture.md](../architecture.md)

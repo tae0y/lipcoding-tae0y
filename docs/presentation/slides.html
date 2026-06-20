@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>작업기억 인박스 — 발표 자료</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --fg: #fafafa;
+            --muted: #a1a1aa;
+            --line: #27272a;
+            --card: #18181b;
+            --accent: #2563eb;
+            --accent-soft: #1e3a8a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard",
+                "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #deck {
+            position: fixed;
+            inset: 0;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: clamp(2rem, 6vw, 6rem);
+            opacity: 0;
+            transition: opacity .35s ease;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .slide.title {
+            justify-content: center;
+        }
+
+        .eyebrow {
+            font-size: clamp(.8rem, 1.4vw, 1rem);
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+        }
+
+        h1 {
+            font-size: clamp(2.6rem, 7vw, 6rem);
+            line-height: 1.02;
+            letter-spacing: -.02em;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: clamp(1.8rem, 4.2vw, 3.4rem);
+            line-height: 1.08;
+            letter-spacing: -.015em;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .sub {
+            font-size: clamp(1.1rem, 2.2vw, 1.8rem);
+            color: var(--muted);
+            margin-top: 1.4rem;
+            max-width: 40ch;
+            line-height: 1.4;
+        }
+
+        .footer-note {
+            margin-top: 2.6rem;
+            font-size: clamp(.85rem, 1.4vw, 1rem);
+            color: var(--muted);
+            letter-spacing: .02em;
+        }
+
+        ul {
+            list-style: none;
+            max-width: 56ch;
+        }
+
+        li {
+            font-size: clamp(1.1rem, 2.4vw, 1.9rem);
+            line-height: 1.4;
+            padding: .55rem 0 .55rem 1.7rem;
+            position: relative;
+            color: var(--fg);
+        }
+
+        li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 1.25em;
+            width: .55rem;
+            height: .55rem;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        li.sub-item {
+            color: var(--muted);
+            font-size: clamp(.98rem, 2vw, 1.5rem);
+            padding-left: 3.1rem;
+        }
+
+        li.sub-item::before {
+            left: 1.7rem;
+            top: 1.15em;
+            width: .4rem;
+            height: .4rem;
+            background: var(--muted);
+        }
+
+        .big {
+            font-size: clamp(2.2rem, 5.5vw, 4.8rem);
+            line-height: 1.08;
+            letter-spacing: -.02em;
+            font-weight: 800;
+            max-width: 18ch;
+        }
+
+        .big .accent {
+            color: var(--accent);
+        }
+
+        .cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1.5rem, 4vw, 4rem);
+        }
+
+        .col h3 {
+            font-size: clamp(1rem, 1.8vw, 1.4rem);
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: .01em;
+        }
+
+        .col ul li {
+            font-size: clamp(.95rem, 1.9vw, 1.45rem);
+            padding-top: .4rem;
+            padding-bottom: .4rem;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 60rem;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: .85rem 1.1rem;
+            border-bottom: 1px solid var(--line);
+            font-size: clamp(.95rem, 1.9vw, 1.4rem);
+        }
+
+        th {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        td:first-child {
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .quote {
+            font-size: clamp(1.2rem, 2.6vw, 2.1rem);
+            line-height: 1.45;
+            max-width: 44ch;
+            border-left: 3px solid var(--accent);
+            padding-left: 1.4rem;
+            color: var(--fg);
+        }
+
+        .quote .src {
+            display: block;
+            margin-top: 1rem;
+            font-size: .85em;
+            color: var(--muted);
+        }
+
+        /* chrome */
+        #progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent);
+            width: 0;
+            transition: width .3s ease;
+            z-index: 10;
+        }
+
+        #counter {
+            position: fixed;
+            bottom: 1.4rem;
+            right: 1.8rem;
+            font-size: .85rem;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+            z-index: 10;
+        }
+
+        #hint {
+            position: fixed;
+            bottom: 1.4rem;
+            left: 1.8rem;
+            font-size: .8rem;
+            color: var(--line);
+            z-index: 10;
+            transition: opacity .4s ease;
+        }
+
+        .nav-zone {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 25%;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .nav-zone.prev {
+            left: 0;
+        }
+
+        .nav-zone.next {
+            right: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="progress"></div>
+    <div id="deck"></div>
+    <div class="nav-zone prev" data-dir="-1"></div>
+    <div class="nav-zone next" data-dir="1"></div>
+    <div id="counter">1 / 1</div>
+    <div id="hint">← → 또는 클릭 · F 전체화면</div>
+
+    <script>
+        const slides = [
+            {
+                type: "title",
+                h1: "작업기억 인박스",
+                sub: "퇴근 후, 부하가 낮을 때 딱 한 건만 제안하는 AI",
+                footer: "2026 천하제일 입코딩 대회 · 개인 생산성 향상"
+            },
+
+            {
+                type: "section", eyebrow: "01 · 문제", h2: "생산성이 커진 만큼, 머리가 터진다",
+                items: [
+                    ["사람은 한 번에 5±2개의 작업기억만 유지할 수 있다", 0],
+                    ["생산성↑ → 처리량↑ → 떠오르는 아이디어·할 일도 폭증", 0],
+                    ["쏟아지는 항목을 머릿속에 들고 있으면 인지 과부하", 1],
+                    ["정작 '지금 할 수 있는 한 건'을 고르지 못한다", 1],
+                ]
+            },
+
+            {
+                type: "quote",
+                quote: "사람의 작업기억은 한 번에 5±2개.",
+                src: "Miller 1956 (7±2) · Cowan 2001 (~4, 3–5) — 어느 쪽이든 한계는 작다."
+            },
+
+            { type: "big", big: ['넘치는 건 ', { a: "'덤프'" }, '에 보관하고,'], sub: "적절한 순간에 한 건만 꺼내자." },
+
+            {
+                type: "section", eyebrow: "02 · 해결", h2: "한 줄 정의",
+                items: [
+                    ["아이디어를 던지면 AI가 '지금 착수 가능한가'를 판정한다", 0],
+                    ["가능하면 인박스에 노출, 아니면 덤프에 보관", 0],
+                    ["정보가 부족한 덤프 항목은 AI가 대신 사전조사", 1],
+                    ["주 1회 퇴근 후, 부하가 낮을 때 '지금 해볼까요?'로 한 건 제안", 0],
+                ]
+            },
+
+            {
+                type: "big", big: ['계획·판단·통합·실행은 ', { a: "사람이." }],
+                sub: "AI는 조사·준비 등 바닥만 깐다 — Augment, not replace."
+            },
+
+            {
+                type: "cols", eyebrow: "03 · 동작 원리", h2: "두 개의 판단",
+                left: {
+                    title: "입구 판정 (캡처 시)", items: [
+                        ["정보 준비성 — 다음 액션이 특정되는가?", 0],
+                        ["현재 여유 — 일정·감정이 받쳐주는가?", 0],
+                        ["둘 다 OK → 지금 착수 가능 (inbox)", 1],
+                        ["하나라도 NO → 덤프 + 사유 태그", 1],
+                    ]
+                },
+                right: {
+                    title: "제안 트리거 (주 1회)", items: [
+                        ["사용자 설정 요일·시각에 배치 실행", 0],
+                        ["퇴근 후 부하 게이트 통과 시에만 제안", 0],
+                        ["랭킹: 낮은 부하 · 조사 완료 · 관심사 연관성", 1],
+                        ["아니면 그 주는 침묵 / 연기", 1],
+                    ]
+                }
+            },
+
+            {
+                type: "section", h2: "AI 사전조사 — info_gap 항목에만",
+                items: [
+                    ["재료: 빠진 정보·참고 사실·링크 수집", 0],
+                    ["선택지/프레임: 'A/B/C 옵션이 있다' 수준의 구조화", 0],
+                    ["최종 '다음 액션 결정'은 사람의 몫으로 남긴다", 1],
+                    ["추천 액션 초안까지는 제시하지 않음 — 대체 위험 배제", 1],
+                ]
+            },
+
+            {
+                type: "cols", h2: "화면 구성 — 입력·조회·설정",
+                left: {
+                    title: "입력 화면", items: [
+                        ["아이디어 한 줄 입력 (주 기능)", 0],
+                        ["오늘 상태: 기분 · 저녁 · 할일", 0],
+                        ["입력 즉시 판정 결과 피드백", 1],
+                    ]
+                },
+                right: {
+                    title: "조회 / 설정", items: [
+                        ["이번 주 추천 + 근거 3줄 + 승인 버튼", 0],
+                        ["지금 착수 가능 (inbox) · 덤프 + 조사노트", 0],
+                        ["설정: 주간 추천 요일·시각", 0],
+                        ["결정 버튼은 사람: 해볼게요 / 다음에 / 관심없음", 1],
+                    ]
+                }
+            },
+
+            {
+                type: "section", eyebrow: "04 · 기술", h2: "아키텍처",
+                items: [
+                    ["Frontend: React + Vite + Tailwind (반응형 웹)", 0],
+                    ["Backend: FastAPI + SQLite", 0],
+                    ["에이전트: GitHub Copilot SDK — 도구 호출·컨텍스트·스트리밍", 0],
+                    ["AI 계층: Azure OpenAI (판정·사전조사·임베딩 유사도)", 0],
+                    ["배포: Azure App Service", 0],
+                ]
+            },
+
+            {
+                type: "table", h2: "심사 기준 대응",
+                headers: ["심사 항목", "본 앱의 대응"],
+                rows: [
+                    ["Copilot SDK (25%)", "판정·조사 에이전트의 도구 호출·컨텍스트 설계"],
+                    ["Productivity Fit (18%)", "작업기억 과부하라는 명확한 문제 해결"],
+                    ["Azure AI (18%)", "Azure OpenAI 판정·조사·임베딩 매칭"],
+                    ["UX & Workflow (12%)", "저항 낮은 화면, 근거 3줄로 투명성"],
+                    ["Responsible AI (6%)", "위험 결정은 사람 승인, 대체 금지 원칙"],
+                    ["Innovation (5%)", "'덤프 후 적시 제안'이라는 새로운 프레임"],
+                ]
+            },
+
+            {
+                type: "big", big: ['작업기억 부하는 ', { a: "줄이고," }],
+                sub: "적절한 순간에 AI의 도움을, 인간의 역량은 보존한다."
+            },
+        ];
+
+        const deck = document.getElementById("deck");
+
+        function liList(items) {
+            return items.map(([t, lvl]) =>
+                `<li class="${lvl ? "sub-item" : ""}">${t}</li>`).join("");
+        }
+        function bigHtml(parts) {
+            return parts.map(p => typeof p === "string" ? p : `<span class="accent">${p.a}</span>`).join("");
+        }
+
+        slides.forEach((s) => {
+            const el = document.createElement("section");
+            el.className = "slide" + (s.type === "title" ? " title" : "");
+            let html = "";
+            if (s.eyebrow) html += `<div class="eyebrow">${s.eyebrow}</div>`;
+
+            if (s.type === "title") {
+                html += `<h1>${s.h1}</h1><div class="sub">${s.sub}</div><div class="footer-note">${s.footer}</div>`;
+            } else if (s.type === "section") {
+                html += `<h2>${s.h2}</h2><ul>${liList(s.items)}</ul>`;
+            } else if (s.type === "big") {
+                html += `<div class="big">${bigHtml(s.big)}</div>` + (s.sub ? `<div class="sub">${s.sub}</div>` : "");
+            } else if (s.type === "quote") {
+                html += `<blockquote class="quote">${s.quote}<span class="src">${s.src}</span></blockquote>`;
+            } else if (s.type === "cols") {
+                html += `<h2>${s.h2}</h2><div class="cols">
+      <div class="col"><h3>${s.left.title}</h3><ul>${liList(s.left.items)}</ul></div>
+      <div class="col"><h3>${s.right.title}</h3><ul>${liList(s.right.items)}</ul></div></div>`;
+            } else if (s.type === "table") {
+                const head = s.headers.map(h => `<th>${h}</th>`).join("");
+                const body = s.rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("");
+                html += `<h2>${s.h2}</h2><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+            }
+            el.innerHTML = html;
+            deck.appendChild(el);
+        });
+
+        const slideEls = [...document.querySelectorAll(".slide")];
+        const counter = document.getElementById("counter");
+        const progress = document.getElementById("progress");
+        const hint = document.getElementById("hint");
+        let idx = 0;
+
+        function render() {
+            slideEls.forEach((el, i) => el.classList.toggle("active", i === idx));
+            counter.textContent = `${idx + 1} / ${slideEls.length}`;
+            progress.style.width = `${((idx + 1) / slideEls.length) * 100}%`;
+            location.hash = idx + 1;
+        }
+        function go(dir) {
+            const next = idx + dir;
+            if (next < 0 || next >= slideEls.length) return;
+            idx = next; render();
+            hint.style.opacity = "0";
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (["ArrowRight", "ArrowDown", " ", "PageDown"].includes(e.key)) { e.preventDefault(); go(1); }
+            else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)) { e.preventDefault(); go(-1); }
+            else if (e.key === "Home") { idx = 0; render(); }
+            else if (e.key === "End") { idx = slideEls.length - 1; render(); }
+            else if (e.key === "f" || e.key === "F") {
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+                else document.exitFullscreen();
+            }
+        });
+        document.querySelectorAll(".nav-zone").forEach(z =>
+            z.addEventListener("click", () => go(+z.dataset.dir)));
+
+        const start = parseInt(location.hash.slice(1), 10);
+        if (start >= 1 && start <= slideEls.length) idx = start - 1;
+        render();
+    </script>
+</body>
+
+</html>
