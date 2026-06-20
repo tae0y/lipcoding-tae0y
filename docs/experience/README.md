@@ -12,3 +12,4 @@ isn't stepped on twice. The notes themselves are in Korean.
 | [2026-06-20-copilot-mixed-language-output.md](2026-06-20-copilot-mixed-language-output.md) | Why Copilot output came out mixed Japanese/English (Japan VPN routing). |
 | [2026-06-20-sqlite-db-leaked-into-container.md](2026-06-20-sqlite-db-leaked-into-container.md) | Local SQLite DB leaked into the container image; fixed with a root `.dockerignore`. |
 | [2026-06-20-submission-unpushed-commit-hash-invalid.md](2026-06-20-submission-unpushed-commit-hash-invalid.md) | Submitted a correct-but-unpushed commit hash → invalid; always push and verify on the remote first. |
+| [2026-06-20-ai-poor-prioritization-under-time-pressure.md](2026-06-20-ai-poor-prioritization-under-time-pressure.md) | Under a time limit the AI failed to pick the cheapest-highest-impact task (prompt-injection guard); give it an explicit objective function, not "do what you can". |
