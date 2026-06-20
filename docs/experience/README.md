@@ -9,3 +9,4 @@ isn't stepped on twice. The notes themselves are in Korean.
 |------|------|
 | [2026-06-20-voice-chat-setup.md](2026-06-20-voice-chat-setup.md) | Notes on setting up the voice-chat workflow, so the setup isn't re-derived. |
 | [2026-06-20-korean-stt-troubleshooting.md](2026-06-20-korean-stt-troubleshooting.md) | What broke and what fixed Korean STT misrecognition. |
+| [2026-06-20-copilot-mixed-language-output.md](2026-06-20-copilot-mixed-language-output.md) | Why Copilot output came out mixed Japanese/English (Japan VPN routing). |
