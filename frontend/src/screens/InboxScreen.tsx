@@ -19,6 +19,7 @@ interface InboxScreenProps {
     inboxIdeas: Idea[];
     dumpIdeas: Idea[];
     onRunResearch?: (ideaId: string) => void;
+    onDeleteIdea?: (id: string) => void;
     researchingId?: string | null;
     researchProgress?: string;
     userState: UserState | null;
@@ -65,6 +66,7 @@ export default function InboxScreen({
     inboxIdeas,
     dumpIdeas,
     onRunResearch,
+    onDeleteIdea,
     researchingId,
     researchProgress,
     userState,
@@ -165,9 +167,20 @@ export default function InboxScreen({
                             {inboxIdeas.length === 0 ? (
                                 <p className="text-sm text-neutral-400">비어 있음</p>
                             ) : (
-                                <ul className="list-disc space-y-1 pl-5 text-sm text-neutral-800">
+                                <ul className="space-y-1 text-sm text-neutral-800">
                                     {inboxIdeas.map((idea) => (
-                                        <li key={idea.id}>{idea.text}</li>
+                                        <li key={idea.id} className="flex items-center justify-between gap-2">
+                                            <span>{idea.text}</span>
+                                            {onDeleteIdea && (
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => onDeleteIdea(idea.id)}
+                                                >
+                                                    삭제
+                                                </Button>
+                                            )}
+                                        </li>
                                     ))}
                                 </ul>
                             )}
@@ -194,13 +207,24 @@ export default function InboxScreen({
                                                 <span className="text-sm text-neutral-800">
                                                     {idea.text}
                                                 </span>
-                                                {idea.dumpReason ? (
-                                                    <Badge>
-                                                        {DUMP_REASON_LABEL[
-                                                            idea.dumpReason
-                                                        ] ?? idea.dumpReason}
-                                                    </Badge>
-                                                ) : null}
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {idea.dumpReason ? (
+                                                        <Badge>
+                                                            {DUMP_REASON_LABEL[
+                                                                idea.dumpReason
+                                                            ] ?? idea.dumpReason}
+                                                        </Badge>
+                                                    ) : null}
+                                                    {onDeleteIdea && (
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            onClick={() => onDeleteIdea(idea.id)}
+                                                        >
+                                                            삭제
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
                                             {idea.dumpReason === "info_gap" && !idea.research && onRunResearch ? (
                                                 <Button

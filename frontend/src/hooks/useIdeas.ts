@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Idea } from "../lib/types";
-import { createIdea, listIdeas } from "../lib/api";
+import { createIdea, deleteIdea as apiDeleteIdea, listIdeas } from "../lib/api";
 
 export function useIdeas() {
     const [inboxIdeas, setInboxIdeas] = useState<Idea[]>([]);
@@ -71,6 +71,14 @@ export function useIdeas() {
         [reload]
     );
 
+    const deleteIdea = useCallback(
+        async (id: string) => {
+            await apiDeleteIdea(id);
+            await reload();
+        },
+        [reload]
+    );
+
     return {
         inboxIdeas,
         dumpIdeas,
@@ -78,6 +86,7 @@ export function useIdeas() {
         lastVerdict,
         verdictError,
         captureIdea,
+        deleteIdea,
         reload,
         loading,
         loadError,

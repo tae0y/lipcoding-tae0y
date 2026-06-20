@@ -25,6 +25,7 @@ from app.models import (
     Idea,
     IdeaCreateRequest,
     IdeaStatus,
+    Research,
     Suggestion,
     SuggestionDecisionRequest,
     SuggestionReasons,
@@ -149,6 +150,7 @@ def delete_idea(idea_id: str) -> Response:
 
 @app.post(
     f"{config.API_PREFIX}/ideas/{{idea_id}}/research",
+    response_model=Research,
     tags=["research"],
 )
 async def run_research(
@@ -169,11 +171,9 @@ async def run_research(
         raise HTTPException(status_code=409, detail="사전조사 대상이 아님(info_gap 아님)")
 
     if not stream:
-        from fastapi.responses import JSONResponse
-
         research = await generate_research(idea.text)
         db.update_idea(idea.model_copy(update={"research": research}))
-        return JSONResponse(content=research.model_dump(mode="json"))
+        return research
 
     # SSE 스트리밍
     async def sse_generator():

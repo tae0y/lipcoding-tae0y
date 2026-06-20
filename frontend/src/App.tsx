@@ -18,9 +18,8 @@ export default function App() {
         inboxIdeas,
         dumpIdeas,
         submitting,
-        lastVerdict,
-        verdictError,
         captureIdea,
+        deleteIdea,
         reload: reloadIdeas,
         loadError: ideasError,
     } = useIdeas();
@@ -57,6 +56,7 @@ export default function App() {
         if (!text) return;
         await captureIdea(text);
         setIdeaText("");
+        setScreen("inbox");
     };
 
     const handleRunResearch = async (ideaId: string) => {
@@ -102,8 +102,6 @@ export default function App() {
                     onIdeaTextChange={setIdeaText}
                     onSubmit={handleSubmit}
                     submitting={submitting}
-                    lastVerdict={lastVerdict}
-                    verdictError={verdictError}
                 />
             ) : (
                 <InboxScreen
@@ -114,6 +112,7 @@ export default function App() {
                     inboxIdeas={inboxIdeas}
                     dumpIdeas={dumpIdeas}
                     onRunResearch={handleRunResearch}
+                    onDeleteIdea={deleteIdea}
                     researchingId={researchingId}
                     researchProgress={researchProgress}
                     userState={userState}
