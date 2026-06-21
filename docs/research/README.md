@@ -10,4 +10,4 @@
 | [stt.md](stt.md) | 음성 입력(STT) 옵션 | 기본 스킵. 시간 남으면 Web Speech API 10줄만 |
 | [design.md](design.md) | 앱 디자인/비주얼 제안 | Tailwind + shadcn/ui, 차분/저부하 톤, 작업기억 5슬롯 미터 |
 
-관련: [../archive/v0.0.1/plan/competition-plan.md](../archive/v0.0.1/plan/competition-plan.md) · [../source-of-truth/judgement-criteria.md](../source-of-truth/judgement-criteria.md)
+관련: [../archive/v0.0.1/plan/competition-plan.md](../archive/v0.0.1/plan/competition-plan.md) · [../archive/v0.0.1/source-of-truth/judgement-criteria.md](../archive/v0.0.1/source-of-truth/judgement-criteria.md)

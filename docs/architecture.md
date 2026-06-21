@@ -137,5 +137,5 @@ Detailed steps and verification commands: [research/azure-deploy.md](research/az
 ## See Also
 
 - Full API contract: [plan/openapi.yaml](plan/openapi.yaml)
-- Requirements spec: [plan/app-requirements.md](plan/app-requirements.md)
-- Screen wireframes: [plan/ui-wireframes.md](plan/ui-wireframes.md)
+- Requirements spec: [archive/v0.0.1/plan/completed/app-requirements.md](archive/v0.0.1/plan/completed/app-requirements.md)
+- Screen wireframes: [archive/v0.0.1/plan/completed/ui-wireframes.md](archive/v0.0.1/plan/completed/ui-wireframes.md)

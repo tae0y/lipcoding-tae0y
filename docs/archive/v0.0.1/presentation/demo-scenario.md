@@ -5,9 +5,9 @@
 > (Copilot SDK 25% · Azure AI 18% · 엔드투엔드 16% · Responsible AI 6%)을
 > 한 번의 흐름으로 보여준다.
 >
-> 상위 문서: [app-requirements.md](../plan/app-requirements.md) ·
-> [ui-wireframes.md](../plan/ui-wireframes.md) ·
-> [competition-plan.md](../archive/v0.0.1/plan/competition-plan.md)
+> 상위 문서: [app-requirements.md](../plan/completed/app-requirements.md) ·
+> [ui-wireframes.md](../plan/completed/ui-wireframes.md) ·
+> [competition-plan.md](../plan/competition-plan.md)
 
 ---
 

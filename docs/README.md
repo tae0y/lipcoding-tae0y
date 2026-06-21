@@ -15,15 +15,8 @@ For the product overview see the root [README](../README.md); for technical dept
 | Document | Why it exists |
 |------|------|
 | [architecture.md](architecture.md) | Explains how the Copilot SDK is used and how the app is deployed on Azure — the technical depth a reviewer would want after the README. |
-
-### source-of-truth/ — the immutable reference
-
-Official material from the organizers, kept verbatim and used only as ground truth.
-
-| Document | Why it exists |
-|------|------|
-| [competition-notice.md](source-of-truth/competition-notice.md) | The original competition announcement (rules, required elements, deadlines). |
-| [judgement-criteria.md](source-of-truth/judgement-criteria.md) | The original judging rubric, used to prioritize work by weight. |
+| [FEEDBACK.md](FEEDBACK.md) | The competition judging feedback, kept as the basis for re-implementation priorities. |
+| [RECALL.md](RECALL.md) | The personal retrospective after the competition. |
 
 ### ideation/ — where it began
 
@@ -48,19 +41,20 @@ What the implementation is held against: requirements, contract, schedule, remai
 
 | Document | Why it exists |
 |------|------|
-| [app-requirements.md](plan/app-requirements.md) | The requirements spec locked in a grilling session, handed off as the source for implementation. |
-| [ui-wireframes.md](plan/ui-wireframes.md) | The two-screen ASCII wireframes confirmed in the same session. |
 | [openapi.yaml](plan/openapi.yaml) | The REST API contract the backend and frontend both follow. |
 | [openapi.json](plan/openapi.json) | A JSON conversion of the contract for tooling. |
-| [completed/](plan/completed) | Design docs frozen once their work was implemented. |
-| [archive/v0.0.1/](archive/v0.0.1) | Competition-era docs (root PRD/README + plan schedule, remaining-work, handover), frozen at v0.0.1. |
+| [reimplementation-backlog.md](plan/reimplementation-backlog.md) | The v0.0.2 re-implementation backlog (missing ideas, feedback TODOs, UI work). |
 
-### presentation/ — the pitch
+### archive/v0.0.1/ — frozen at competition submission
 
-| Document | Why it exists |
+Competition-era material, frozen at the `v0.0.1` tag and kept for reference only.
+
+| Path | Why it exists |
 |------|------|
-| [demo-scenario.md](presentation/demo-scenario.md) | The live demo script (five scenes + backup plan) to show the value in three minutes. |
-| [build_deck.py](presentation/build_deck.py) | A script that generates the presentation slides (.pptx). |
+| [PRD.md](archive/v0.0.1/PRD.md) · [README.md](archive/v0.0.1/README.md) | The submission's product spec and readme. |
+| [plan/](archive/v0.0.1/plan) | Schedule, remaining-work audit, handover prompt, and the frozen design docs (completed/). |
+| [source-of-truth/](archive/v0.0.1/source-of-truth) | The organizers' competition notice and judging rubric. |
+| [presentation/](archive/v0.0.1/presentation) | The live demo script and slides. |
 
 ### experience/ — lessons logged
 
