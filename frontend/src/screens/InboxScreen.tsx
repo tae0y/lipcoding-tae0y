@@ -71,21 +71,21 @@ export default function InboxScreen({
 
             <main className="mx-auto max-w-[640px] px-4 py-8 space-y-12">
                 {userState && (
-                    <div className="flex items-center gap-2 rounded-xl border border-[rgba(255,255,255,0.20)] bg-[rgba(255,255,255,0.06)] px-4 py-2.5 text-sm backdrop-blur">
-                        <span className="font-bold text-[rgba(255,255,255,0.50)]">현재 상태</span>
-                        <span className="mx-1 text-[rgba(255,255,255,0.20)]">|</span>
-                        <span className="font-extrabold text-white">{EMOTION_LABEL[userState.emotion]}</span>
-                        <span className="mx-1 text-[rgba(255,255,255,0.20)]">·</span>
-                        <span className={userState.calendarBusy ? "text-[#f8441b] font-bold" : "text-[#02d95c] font-bold"}>
+                    <div className="flex items-center gap-2 rounded-2xl border border-[var(--glass-edge)] bg-[var(--glass-fill)] px-4 py-2.5 text-sm backdrop-blur">
+                        <span className="font-bold text-[var(--ink-faint)]">현재 상태</span>
+                        <span className="mx-1 text-[var(--glass-edge)]">|</span>
+                        <span className="font-extrabold text-[var(--ink)]">{EMOTION_LABEL[userState.emotion]}</span>
+                        <span className="mx-1 text-[var(--glass-edge)]">·</span>
+                        <span className={userState.calendarBusy ? "text-[#c2410c] font-bold" : "text-[var(--success)] font-bold"}>
                             {userState.calendarBusy ? "📅 저녁 약속 있음" : "✅ 저녁 비었음"}
                         </span>
                     </div>
                 )}
                 <section className="space-y-3">
-                    <div className="flex items-baseline justify-between border-b border-[rgba(255,255,255,0.20)] pb-2">
+                    <div className="flex items-baseline justify-between border-b border-[var(--glass-edge)] pb-2">
                         <div className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-[#b07070]" />
-                            <h2 className="text-xl font-extrabold tracking-tight text-white">
+                            <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
+                            <h2 className="font-display text-xl font-extrabold tracking-tight text-[var(--ink)]">
                                 이번 주 추천
                             </h2>
                         </div>
@@ -99,21 +99,21 @@ export default function InboxScreen({
                             </CardContent>
                         </Card>
                     ) : suggestion ? (
-                        <Card className="border-[rgba(180,100,100,0.30)] bg-[rgba(255,255,255,0.06)] backdrop-blur-md shadow-[0_12px_44px_-16px_rgba(180,100,100,0.22),inset_0_1px_0_rgba(255,255,255,0.25)]">
+                        <Card className="border-[var(--accent)]/20 bg-[var(--glass-fill)] backdrop-blur-md shadow-[0_24px_60px_-28px_rgba(79,70,229,0.30),inset_0_1px_0_rgba(255,255,255,0.9)]">
                             <CardHeader className="pb-2">
-                                <p className="text-xs font-extrabold uppercase tracking-widest text-[#b07070] mb-1">이번 주 AI 제안</p>
-                                <CardTitle className="text-[2rem] font-extrabold leading-snug text-white">
+                                <p className="text-xs font-extrabold uppercase tracking-widest text-[var(--accent)] mb-1">이번 주 AI 제안</p>
+                                <CardTitle className="text-[2rem] font-extrabold leading-snug text-[var(--ink)]">
                                     {suggestion.idea?.text ?? suggestion.ideaId}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-5">
                                 <div className="space-y-1.5">
-                                    <p className="text-[11px] font-extrabold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">추천 근거</p>
+                                    <p className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--ink-faint)]">추천 근거</p>
                                     <ul className="space-y-3">
                                         {REASON_ROWS.map(({ key, label }) => (
                                             <li key={key} className="flex items-start gap-3">
                                                 <Badge className="mt-0.5 shrink-0">{label}</Badge>
-                                                <span className="text-base font-semibold text-white leading-snug">
+                                                <span className="text-base font-semibold text-[var(--ink)] leading-snug">
                                                     {suggestion.reasons[key]}
                                                 </span>
                                             </li>
@@ -141,28 +141,28 @@ export default function InboxScreen({
                             </CardContent>
                         </Card>
                     ) : (
-                        <p className="text-sm text-neutral-500">지금은 제안 없음.</p>
+                        <p className="text-sm text-[var(--ink-faint)]">지금은 제안 없음.</p>
                     )}
                 </section>
 
                 <section className="space-y-3">
-                    <div className="flex items-baseline justify-between border-b border-[rgba(255,255,255,0.20)] pb-2">
+                    <div className="flex items-baseline justify-between border-b border-[var(--glass-edge)] pb-2">
                         <div className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                            <h2 className="text-xl font-extrabold tracking-tight text-white">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                            <h2 className="font-display text-xl font-extrabold tracking-tight text-[var(--ink)]">
                                 지금 착수 가능
                             </h2>
                         </div>
-                        <span className="text-xs font-bold text-[rgba(255,255,255,0.45)]">
+                        <span className="text-xs font-bold text-[var(--ink-faint)]">
                             {inboxIdeas.length}개
                         </span>
                     </div>
                     <Card>
                         <CardContent>
                             {inboxIdeas.length === 0 ? (
-                                <p className="text-sm text-[rgba(255,255,255,0.45)]">비어 있음</p>
+                                <p className="text-sm text-[var(--ink-faint)]">비어 있음</p>
                             ) : (
-                                <ul className="space-y-1 text-sm text-white">
+                                <ul className="space-y-1 text-sm text-[var(--ink)]">
                                     {inboxIdeas.map((idea) => (
                                         <li key={idea.id} className="flex items-center justify-between gap-2">
                                             <span>{idea.text}</span>
@@ -184,27 +184,27 @@ export default function InboxScreen({
                 </section>
 
                 <section className="space-y-3">
-                    <div className="flex items-baseline justify-between border-b border-[rgba(255,255,255,0.20)] pb-2">
+                    <div className="flex items-baseline justify-between border-b border-[var(--glass-edge)] pb-2">
                         <div className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-amber-400" />
-                            <h2 className="text-xl font-extrabold tracking-tight text-white">
+                            <span className="h-2 w-2 rounded-full bg-amber-500" />
+                            <h2 className="font-display text-xl font-extrabold tracking-tight text-[var(--ink)]">
                                 보관함 / 덤프
                             </h2>
                         </div>
-                        <span className="text-xs font-bold text-[rgba(255,255,255,0.45)]">
+                        <span className="text-xs font-bold text-[var(--ink-faint)]">
                             {dumpIdeas.length}개
                         </span>
                     </div>
                     <Card>
                         <CardContent>
                             {dumpIdeas.length === 0 ? (
-                                <p className="text-sm text-[rgba(255,255,255,0.45)]">비어 있음</p>
+                                <p className="text-sm text-[var(--ink-faint)]">비어 있음</p>
                             ) : (
-                                <ul className="divide-y divide-[rgba(255,255,255,0.12)]">
+                                <ul className="divide-y divide-[var(--glass-edge)]">
                                     {dumpIdeas.map((idea) => (
                                         <li key={idea.id} className="space-y-2 py-3 first:pt-0 last:pb-0">
                                             <div className="flex items-start justify-between gap-3">
-                                                <span className="text-sm text-white">
+                                                <span className="text-sm text-[var(--ink)]">
                                                     {idea.text}
                                                 </span>
                                                 <div className="flex items-center gap-2 shrink-0">
@@ -244,20 +244,20 @@ export default function InboxScreen({
                                                 />
                                             ) : null}
                                             {researchingId === idea.id && researchProgress ? (
-                                                <p className="mt-1 whitespace-pre-wrap text-xs text-[rgba(255,255,255,0.45)]">
+                                                <p className="mt-1 whitespace-pre-wrap text-xs text-[var(--ink-faint)]">
                                                     {researchProgress}
                                                 </p>
                                             ) : null}
                                             {idea.research ? (
                                                 <details className="text-sm">
-                                                    <summary className="cursor-pointer text-[#c2c2c1]">
+                                                    <summary className="cursor-pointer text-[var(--ink-soft)]">
                                                         ▸ 조사노트
                                                     </summary>
                                                     <div className="mt-2 space-y-3 pl-3">
                                                         {idea.research.materials.length > 0 ? (
                                                             <ul className="space-y-1">
                                                                 {idea.research.materials.map((m, i) => (
-                                                                    <li key={i} className="text-[#c2c2c1]">
+                                                                    <li key={i} className="text-[var(--ink-soft)]">
                                                                         {m.fact}
                                                                         {m.url ? (
                                                                             <>
@@ -266,7 +266,7 @@ export default function InboxScreen({
                                                                                     href={m.url}
                                                                                     target="_blank"
                                                                                     rel="noreferrer"
-                                                                                    className="text-[#fcfbf9] underline"
+                                                                                    className="text-[var(--accent)] underline"
                                                                                 >
                                                                                     링크
                                                                                 </a>
@@ -277,7 +277,7 @@ export default function InboxScreen({
                                                             </ul>
                                                         ) : null}
                                                         {idea.research.options.length > 0 ? (
-                                                            <ul className="list-disc space-y-1 pl-5 text-[#c2c2c1]">
+                                                            <ul className="list-disc space-y-1 pl-5 text-[var(--ink-soft)]">
                                                                 {idea.research.options.map((opt, i) => (
                                                                     <li key={i}>{opt}</li>
                                                                 ))}

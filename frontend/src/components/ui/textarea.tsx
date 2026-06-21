@@ -11,7 +11,7 @@ export function Textarea({
     return (
         <textarea
             className={cx(
-                "w-full rounded-[14px] border border-[rgba(255,255,255,0.45)] bg-[rgba(255,255,255,0.08)] px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm backdrop-blur-md transition-colors placeholder:text-[rgba(255,255,255,0.38)] focus:border-[rgba(255,255,255,0.60)] focus:outline-none focus:ring-2 focus:ring-white/15",
+                "w-full rounded-2xl border border-[var(--glass-edge)] bg-[var(--glass-fill)] px-3.5 py-2.5 text-sm font-semibold text-[var(--ink)] shadow-sm backdrop-blur-md transition-colors placeholder:text-[var(--ink-faint)] focus:border-[var(--accent)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15",
                 className,
             )}
             {...props}

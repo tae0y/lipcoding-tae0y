@@ -1,26 +1,34 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@400;500;600;700;900&display=swap');
 @import "tailwindcss";
 
-/* ── Color Halftone · Liquid Glass design tokens (bubbbly.com) ── */
+/* ── Quiet Glass · Color Halftone (light) design tokens ── */
 :root {
-    /* core palette — extracted from Color Halftone app */
-    --paper: #f3ecde;
-    --ink: #1f1c16;
-    --accent: #e8252a;
-    --gline: rgba(255, 255, 255, 0.45);
-    /* glass border */
+    /* atmosphere — dawn pastel */
+    --dawn-peach: #ffe7dc;
+    --dawn-lilac: #ece6ff;
+    --dawn-mist: #e3eefb;
 
-    /* semantic aliases */
-    --bg-primary: #000000;
-    --bg-secondary: rgba(255, 255, 255, 0.08);
-    --bg-tertiary: rgba(255, 255, 255, 0.14);
-    --fg-primary: #ffffff;
-    --fg-secondary: rgba(255, 255, 255, 0.78);
-    --fg-muted: rgba(255, 255, 255, 0.45);
-    --border: rgba(255, 255, 255, 0.30);
-    --border-focus: rgba(255, 255, 255, 0.50);
-    --accent-green: #2a9a4f;
-    --accent-red: #e8252a;
+    /* ink (text) */
+    --ink: #211d17;
+    --ink-soft: rgba(33, 29, 23, 0.58);
+    --ink-faint: rgba(33, 29, 23, 0.40);
+
+    /* glass surface (light) */
+    --glass-fill: rgba(255, 255, 255, 0.55);
+    --glass-fill-strong: rgba(255, 255, 255, 0.74);
+    --glass-edge: rgba(33, 29, 23, 0.08);
+    --glass-hi: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --glass-glow: 0 24px 60px -28px rgba(33, 29, 23, 0.35);
+
+    /* accent — indigo (from asset blue button); CMY orbs live in the background */
+    --accent: #4f46e5;
+    --accent-strong: #4338ca;
+    --accent-soft: rgba(79, 70, 229, 0.12);
+    --success: #16a34a;
+    --danger: #e11d48;
+
+    --font-serif: "Gowun Batang", "Noto Serif KR", serif;
 }
 
 @layer base {
@@ -28,33 +36,128 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+        /* dawn pastel gradient — fixed atmosphere */
+        background:
+            radial-gradient(120% 90% at 12% 0%, var(--dawn-peach) 0%, transparent 55%),
+            radial-gradient(120% 90% at 90% 8%, var(--dawn-lilac) 0%, transparent 50%),
+            linear-gradient(180deg, #fff7f1 0%, var(--dawn-mist) 100%);
+        background-attachment: fixed;
     }
 
     body {
-        background-color: #000;
-        /* teal/white swirl + dark overlay — keeps the image visible while ensuring text contrast */
-        background-image:
-            linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)),
-            url('/src/assets/bg.jpg');
-        background-size: cover;
-        background-position: center top;
-        background-attachment: fixed;
-        color: var(--fg-primary);
+        min-height: 100vh;
+        background: transparent;
+        color: var(--ink);
         font-family:
             "Pretendard Variable", Pretendard, system-ui, -apple-system, "Segoe UI",
             "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
         font-feature-settings: "cv11", "ss01";
     }
 
+    /* floating color-halftone orbs (multiply blend) */
+    body::before {
+        content: "";
+        position: fixed;
+        inset: -10%;
+        z-index: -2;
+        pointer-events: none;
+        background:
+            radial-gradient(closest-side, rgba(34, 211, 238, 0.30), transparent) 8% 18% / 38vmin 38vmin no-repeat,
+            radial-gradient(closest-side, rgba(232, 121, 249, 0.26), transparent) 88% 12% / 42vmin 42vmin no-repeat,
+            radial-gradient(closest-side, rgba(253, 224, 71, 0.24), transparent) 70% 88% / 34vmin 34vmin no-repeat;
+        filter: blur(28px);
+        mix-blend-mode: multiply;
+        animation: orb-drift 28s ease-in-out infinite alternate;
+    }
+
+    /* pointillism (halftone dots) + soft grain, fading downward */
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image: radial-gradient(rgba(33, 29, 23, 0.10) 1px, transparent 1.5px);
+        background-size: 13px 13px;
+        opacity: 0.45;
+        -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.9));
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.9));
+    }
+
+    @keyframes orb-drift {
+        from {
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        to {
+            transform: translate3d(0, -3%, 0) scale(1.06);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        body::before {
+            animation: none;
+        }
+    }
+
     h1,
     h2,
     h3 {
-        letter-spacing: -0.02em;
-        color: var(--fg-primary);
+        letter-spacing: -0.01em;
+        color: var(--ink);
     }
 
     ::selection {
         background-color: var(--accent);
         color: #fff;
+    }
+}
+
+@layer utilities {
+
+    /* serif display — hero & titles (free Korean serif) */
+    .font-display {
+        font-family: var(--font-serif);
+        letter-spacing: -0.01em;
+    }
+
+    /* shared light-glass surface */
+    .glass {
+        background: var(--glass-fill);
+        border: 1px solid var(--glass-edge);
+        box-shadow: var(--glass-glow), var(--glass-hi);
+        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+        backdrop-filter: blur(16px) saturate(1.4);
+    }
+}
+
+/* undo toast — rise-in + countdown bar that drains over the undo window */
+@keyframes toast-rise {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes undo-bar {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .undo-toast,
+    .undo-toast__bar {
+        animation: none !important;
     }
 }

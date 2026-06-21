@@ -75,6 +75,10 @@ export function deleteIdea(id: string): Promise<void> {
     return request<void>(`/api/ideas/${id}`, { method: "DELETE" });
 }
 
+export function restoreIdea(id: string): Promise<Idea> {
+    return request<Idea>(`/api/ideas/${id}/restore`, { method: "POST" });
+}
+
 export function getUserState(): Promise<UserState> {
     return request<UserState>("/api/user-state");
 }

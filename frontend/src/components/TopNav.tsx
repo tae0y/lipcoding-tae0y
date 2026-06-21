@@ -17,8 +17,8 @@ interface TopNavProps {
 
 export function TopNav({ active, onNavigate }: TopNavProps) {
     return (
-        <header className="sticky top-0 z-10 border-b border-[rgba(255,255,255,0.30)] bg-black/80 backdrop-blur-md shadow-[inset_0_-1px_0_rgba(255,255,255,0.08)]">
-            <nav className="mx-auto flex max-w-[640px] items-center gap-1.5 px-4 py-2.5">
+        <header className="sticky top-0 z-10 border-b border-[var(--glass-edge)] bg-[var(--glass-fill)] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+            <nav className="mx-auto flex max-w-[640px] items-stretch gap-1.5 px-4 py-2.5">
                 {TABS.map((tab) => {
                     const isActive = tab.key === active;
                     return (
@@ -28,18 +28,19 @@ export function TopNav({ active, onNavigate }: TopNavProps) {
                             onClick={() => onNavigate(tab.key)}
                             aria-current={isActive ? "page" : undefined}
                             className={cx(
-                                "rounded-full px-3 py-1.5 text-left transition-all",
+                                "flex flex-col justify-center rounded-2xl border px-4 py-2 text-left transition-all",
                                 isActive
-                                    ? "bg-white text-[#15120c] shadow-[0_8px_20px_rgba(0,0,0,0.25)]"
-                                    : "bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.45)] text-[rgba(255,255,255,0.70)] hover:bg-[rgba(255,255,255,0.20)] hover:text-white",
+                                    ? "border-transparent bg-[var(--accent)] text-white shadow-[0_8px_20px_-8px_rgba(79,70,229,0.7)]"
+                                    : "border-[var(--glass-edge)] bg-white/40 text-[var(--ink-soft)] hover:bg-white/60 hover:text-[var(--ink)]",
                             )}
                         >
                             <span className="block text-sm font-extrabold leading-tight tracking-[0.01em]">{tab.label}</span>
-                            {tab.sub && (
-                                <span className={cx("block text-[10px] leading-tight mt-0.5", isActive ? "text-[rgba(21,18,12,0.60)]" : "text-[rgba(255,255,255,0.42)]")}>
-                                    {tab.sub}
-                                </span>
-                            )}
+                            <span
+                                aria-hidden={tab.sub ? undefined : true}
+                                className={cx("block text-[10px] leading-tight mt-0.5", isActive ? "text-[rgba(255,255,255,0.75)]" : "text-[var(--ink-faint)]")}
+                            >
+                                {tab.sub || "\u00A0"}
+                            </span>
                         </button>
                     );
                 })}

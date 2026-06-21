@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Idea } from "../lib/types";
-import { createIdea, deleteIdea as apiDeleteIdea, listIdeas } from "../lib/api";
+import {
+    createIdea,
+    deleteIdea as apiDeleteIdea,
+    listIdeas,
+    restoreIdea as apiRestoreIdea,
+} from "../lib/api";
+
+export const UNDO_WINDOW_MS = 10_000;
 
 export function useIdeas() {
     const [inboxIdeas, setInboxIdeas] = useState<Idea[]>([]);
@@ -10,6 +17,16 @@ export function useIdeas() {
     const [lastVerdict, setLastVerdict] = useState<Idea | null>(null);
     const [verdictError, setVerdictError] = useState<string | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
+    // 방금 소프트 삭제한 아이디어. 되돌리기 토스트 표시에 사용한다.
+    const [pendingDelete, setPendingDelete] = useState<Idea | null>(null);
+    const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const clearUndoTimer = useCallback(() => {
+        if (undoTimer.current !== null) {
+            clearTimeout(undoTimer.current);
+            undoTimer.current = null;
+        }
+    }, []);
 
     const reload = useCallback(async () => {
         try {
@@ -73,11 +90,49 @@ export function useIdeas() {
 
     const deleteIdea = useCallback(
         async (id: string) => {
-            await apiDeleteIdea(id);
-            await reload();
+            // 낙관적 제거 + 되돌리기 토스트. 백엔드는 소프트 삭제(tombstone)라 restore 로 복구 가능.
+            const target =
+                inboxIdeas.find((i) => i.id === id) ??
+                dumpIdeas.find((i) => i.id === id) ??
+                null;
+            setInboxIdeas((prev) => prev.filter((i) => i.id !== id));
+            setDumpIdeas((prev) => prev.filter((i) => i.id !== id));
+            try {
+                await apiDeleteIdea(id);
+            } catch {
+                await reload();
+                return;
+            }
+            if (target) {
+                clearUndoTimer();
+                setPendingDelete(target);
+                undoTimer.current = setTimeout(() => {
+                    setPendingDelete(null);
+                    undoTimer.current = null;
+                }, UNDO_WINDOW_MS);
+            }
         },
-        [reload]
+        [inboxIdeas, dumpIdeas, reload, clearUndoTimer]
     );
+
+    const undoDelete = useCallback(async () => {
+        if (!pendingDelete) return;
+        clearUndoTimer();
+        const id = pendingDelete.id;
+        setPendingDelete(null);
+        try {
+            await apiRestoreIdea(id);
+        } finally {
+            await reload();
+        }
+    }, [pendingDelete, reload, clearUndoTimer]);
+
+    const dismissUndo = useCallback(() => {
+        clearUndoTimer();
+        setPendingDelete(null);
+    }, [clearUndoTimer]);
+
+    useEffect(() => clearUndoTimer, [clearUndoTimer]);
 
     return {
         inboxIdeas,
@@ -87,6 +142,9 @@ export function useIdeas() {
         verdictError,
         captureIdea,
         deleteIdea,
+        pendingDelete,
+        undoDelete,
+        dismissUndo,
         reload,
         loading,
         loadError,

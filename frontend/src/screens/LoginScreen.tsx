@@ -34,8 +34,8 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
             <Card className="w-full max-w-[400px]">
                 <CardContent className="p-6 space-y-5">
                     <div className="space-y-1.5">
-                        <h1 className="text-xl font-extrabold text-white">떠올림</h1>
-                        <p className="text-sm text-[rgba(255,255,255,0.68)]">
+                        <h1 className="font-display text-2xl font-extrabold text-[var(--ink)]">떠올림</h1>
+                        <p className="text-sm text-[var(--ink-soft)]">
                             계속하려면 패스프레이즈를 입력하세요.
                         </p>
                     </div>
@@ -44,7 +44,7 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
                         <div className="space-y-1.5">
                             <label
                                 htmlFor="passphrase"
-                                className="block text-xs font-bold text-[rgba(255,255,255,0.78)]"
+                                className="block text-xs font-bold text-[var(--ink-soft)]"
                             >
                                 패스프레이즈
                             </label>
@@ -55,7 +55,7 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
                                 autoFocus
                                 value={passphrase}
                                 onChange={(e) => setPassphrase(e.target.value)}
-                                className="w-full rounded-[14px] border border-[rgba(255,255,255,0.20)] bg-[rgba(255,255,255,0.06)] px-3.5 py-2.5 text-sm text-white outline-none placeholder:text-[rgba(255,255,255,0.40)] focus:border-[rgba(255,255,255,0.45)]"
+                                className="w-full rounded-2xl border border-[var(--glass-edge)] bg-[var(--glass-fill)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)] focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -63,7 +63,7 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
                         {error ? (
                             <p
                                 role="alert"
-                                className="text-xs font-bold text-[#f87171]"
+                                className="text-xs font-bold text-[var(--danger)]"
                             >
                                 {error}
                             </p>

@@ -8,6 +8,7 @@ import { useUserState } from "./hooks/useUserState";
 import { useSuggestion } from "./hooks/useSuggestion";
 import { useAuth } from "./hooks/useAuth";
 import { logout, runResearchStream } from "./lib/api";
+import { UndoToast } from "./components/UndoToast";
 import type { Screen } from "./lib/types";
 
 export default function App() {
@@ -25,6 +26,9 @@ export default function App() {
         verdictError,
         captureIdea,
         deleteIdea,
+        pendingDelete,
+        undoDelete,
+        dismissUndo,
         reload: reloadIdeas,
         loadError: ideasError,
     } = useIdeas();
@@ -84,15 +88,15 @@ export default function App() {
 
 
     const banner = connectionError ? (
-        <div className="border-b border-[rgba(232,37,42,0.35)] bg-[rgba(232,37,42,0.12)] backdrop-blur-md text-white">
+        <div className="border-b border-[rgba(225,29,72,0.25)] bg-[rgba(225,29,72,0.10)] backdrop-blur-md text-[var(--ink)]">
             <div className="mx-auto flex max-w-[640px] items-center justify-between gap-3 px-4 py-2 text-sm">
-                <span className="text-[rgba(255,255,255,0.90)]">
+                <span className="text-[var(--ink-soft)]">
                     서버 연결이 불안정해요. 입력은 저장되며 일부 정보가 안 보일 수 있어요.
                 </span>
                 <button
                     type="button"
                     onClick={handleRetry}
-                    className="shrink-0 rounded-full border border-[rgba(255,255,255,0.45)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-xs font-extrabold text-white hover:bg-[rgba(255,255,255,0.20)] transition-colors"
+                    className="shrink-0 rounded-full border border-[var(--glass-edge)] bg-[var(--glass-fill)] px-3 py-1 text-xs font-extrabold text-[var(--ink)] hover:bg-[var(--glass-fill-strong)] transition-colors"
                 >
                     다시 시도
                 </button>
@@ -131,7 +135,7 @@ export default function App() {
                     <button
                         type="button"
                         onClick={handleLogout}
-                        className="rounded-full border border-[rgba(255,255,255,0.30)] bg-[rgba(255,255,255,0.06)] px-3 py-1 text-xs font-extrabold text-[rgba(255,255,255,0.78)] hover:bg-[rgba(255,255,255,0.16)] hover:text-white transition-colors"
+                        className="rounded-full border border-[var(--glass-edge)] bg-[var(--glass-fill)] px-3 py-1 text-xs font-extrabold text-[var(--ink-soft)] hover:bg-[var(--glass-fill-strong)] hover:text-[var(--ink)] transition-colors"
                     >
                         로그아웃
                     </button>
@@ -173,6 +177,11 @@ export default function App() {
                     onSchedule={setSchedule}
                 />
             )}
+            <UndoToast
+                idea={pendingDelete}
+                onUndo={undoDelete}
+                onDismiss={dismissUndo}
+            />
         </>
     );
 }
