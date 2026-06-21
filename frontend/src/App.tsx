@@ -2,13 +2,16 @@ import { useCallback, useState } from "react";
 import CaptureScreen from "./screens/CaptureScreen";
 import InboxScreen from "./screens/InboxScreen";
 import SettingsScreen from "./screens/SettingsScreen";
+import LoginScreen from "./screens/LoginScreen";
 import { useIdeas } from "./hooks/useIdeas";
 import { useUserState } from "./hooks/useUserState";
 import { useSuggestion } from "./hooks/useSuggestion";
-import { runResearchStream } from "./lib/api";
+import { useAuth } from "./hooks/useAuth";
+import { logout, runResearchStream } from "./lib/api";
 import type { Screen } from "./lib/types";
 
 export default function App() {
+    const auth = useAuth();
     const [screen, setScreen] = useState<Screen>("capture");
     const [ideaText, setIdeaText] = useState("");
     const [researchingId, setResearchingId] = useState<string | null>(null);
@@ -63,14 +66,6 @@ export default function App() {
         void refreshSuggestion();
     };
 
-    const handleSubmit = async () => {
-        const text = ideaText.trim();
-        if (!text) return;
-        await captureIdea(text);
-        setIdeaText("");
-        // 제출 직후 AI 판정을 캡처 화면에서 보여준다(자동 이동하지 않음).
-    };
-
     const handleRunResearch = async (ideaId: string) => {
         setResearchingId(ideaId);
         setResearchProgress("");
@@ -86,6 +81,7 @@ export default function App() {
             setResearchProgress("");
         }
     };
+
 
     const banner = connectionError ? (
         <div className="border-b border-[rgba(232,37,42,0.35)] bg-[rgba(232,37,42,0.12)] backdrop-blur-md text-white">
@@ -104,9 +100,43 @@ export default function App() {
         </div>
     ) : null;
 
+    const handleSubmit = async () => {
+        const text = ideaText.trim();
+        if (!text) return;
+        await captureIdea(text);
+        setIdeaText("");
+        // 제출 직후 AI 판정을 캡처 화면에서 보여준다(자동 이동하지 않음).
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } finally {
+            void auth.refresh();
+        }
+    };
+
+    if (auth.loading) {
+        return <div className="min-h-screen" />;
+    }
+    if (auth.authRequired && !auth.authenticated) {
+        return <LoginScreen onSuccess={auth.refresh} />;
+    }
+
     return (
         <>
             {banner}
+            {auth.authRequired ? (
+                <div className="mx-auto flex max-w-[640px] justify-end px-4 pt-3">
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="rounded-full border border-[rgba(255,255,255,0.30)] bg-[rgba(255,255,255,0.06)] px-3 py-1 text-xs font-extrabold text-[rgba(255,255,255,0.78)] hover:bg-[rgba(255,255,255,0.16)] hover:text-white transition-colors"
+                    >
+                        로그아웃
+                    </button>
+                </div>
+            ) : null}
             {screen === "capture" ? (
                 <CaptureScreen
                     onNavigate={setScreen}

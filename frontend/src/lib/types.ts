@@ -55,3 +55,8 @@ export interface WeeklyTriggerResult {
     suggestion?: Suggestion | null;
     skippedReason?: string | null;
 }
+
+export interface SessionInfo {
+    authenticated: boolean;
+    authRequired: boolean;
+}

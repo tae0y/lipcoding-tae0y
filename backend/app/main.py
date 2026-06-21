@@ -20,19 +20,26 @@ from dotenv import load_dotenv
 # 이미 설정된 환경변수는 덮어쓰지 않는다(override=False).
 load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
-from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    JSONResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
+from starlette.middleware.sessions import SessionMiddleware
 
-from app import config, db
+from app import auth, config, db
 from app.judgment import judge_idea
 from app.models import (
     DumpReason,
     Idea,
     IdeaCreateRequest,
     IdeaStatus,
+    LoginRequest,
     Research,
     Suggestion,
     SuggestionDecisionRequest,
@@ -60,8 +67,10 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title="작업기억 보존 아이디어 인박스 API",
     version="0.1.0",
-    docs_url=config.DOCS_URL,
-    openapi_url=config.OPENAPI_URL,
+    # OpenAPI 문서는 기본 off(보안). 로컬 개발은 ENABLE_DOCS=1 로 활성화.
+    docs_url=config.DOCS_URL if config.ENABLE_DOCS else None,
+    openapi_url=config.OPENAPI_URL if config.ENABLE_DOCS else None,
+    redoc_url=None,
     lifespan=lifespan,
 )
 
@@ -70,6 +79,35 @@ app.add_middleware(
     allow_origins=config.CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
+)
+
+
+@app.middleware("http")
+async def auth_gate(request: Request, call_next):
+    """인증 게이트(allowlist) — /api/* 와 /health/ai 를 세션으로 보호.
+
+    패스프레이즈가 설정되지 않으면(개발 모드) 모두 통과시킨다.
+    공개 경로(SPA, 정적 자산, /health, 로그인/세션 조회)는 그대로 통과한다.
+    """
+    if (
+        auth.is_auth_enabled()
+        and request.method != "OPTIONS"
+        and auth.is_protected_path(request.url.path)
+        and not request.session.get(auth.SESSION_KEY)
+    ):
+        return JSONResponse({"message": "인증이 필요합니다"}, status_code=401)
+    return await call_next(request)
+
+
+# SessionMiddleware 를 마지막에 추가 → 가장 바깥층에서 실행 → auth_gate 가
+# request.session 을 읽을 수 있다. 서명 쿠키(HttpOnly·Secure·SameSite=Strict).
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=config.SESSION_SECRET,
+    session_cookie="workmem_session",
+    https_only=config.SESSION_HTTPS_ONLY,
+    same_site="strict",
 )
 
 
@@ -79,7 +117,9 @@ def root() -> Response:
     index = os.path.join(config.STATIC_DIR, "index.html")
     if os.path.isfile(index):
         return FileResponse(index)
-    return RedirectResponse(url=config.DOCS_URL)
+    if config.ENABLE_DOCS:
+        return RedirectResponse(url=config.DOCS_URL)
+    return JSONResponse({"status": "ok"})
 
 
 @app.get(f"{config.API_PREFIX}/health", include_in_schema=False)
@@ -91,6 +131,38 @@ def health() -> dict[str, str]:
 def health_smoke() -> dict[str, bool]:
     """배포 스모크용 헬스 (azure-deploy.md 계약)."""
     return {"ok": True}
+
+
+# --- Auth ------------------------------------------------------------------
+
+
+@app.post(f"{config.API_PREFIX}/auth/login", tags=["auth"])
+async def login(request: Request, payload: LoginRequest) -> dict[str, bool]:
+    """패스프레이즈 로그인 → 서명 세션 쿠키 발급."""
+    if not auth.is_auth_enabled():
+        return {"authenticated": True}
+    if not auth.verify_passphrase(payload.passphrase):
+        raise HTTPException(status_code=401, detail="패스프레이즈가 올바르지 않습니다")
+    request.session[auth.SESSION_KEY] = True
+    return {"authenticated": True}
+
+
+@app.post(f"{config.API_PREFIX}/auth/logout", tags=["auth"])
+async def logout(request: Request) -> dict[str, bool]:
+    """세션 쿠키 무효화(로그아웃)."""
+    request.session.clear()
+    return {"authenticated": False}
+
+
+@app.get(f"{config.API_PREFIX}/auth/session", tags=["auth"])
+async def auth_session(request: Request) -> dict[str, bool]:
+    """프론트가 로그인 필요 여부를 판단하도록 세션 상태 보고."""
+    if not auth.is_auth_enabled():
+        return {"authenticated": True, "authRequired": False}
+    return {
+        "authenticated": bool(request.session.get(auth.SESSION_KEY)),
+        "authRequired": True,
+    }
 
 
 @app.get("/health/ai", include_in_schema=False)

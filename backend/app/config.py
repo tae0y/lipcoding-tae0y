@@ -7,10 +7,37 @@ OpenAPI 스펙(`docs/plan/openapi.yaml`)이 서버 베이스 경로를 `/api`로
 from __future__ import annotations
 
 import os
+import secrets
 
 # OpenAPI 문서/스키마 노출 경로
 DOCS_URL: str = "/docs"
 OPENAPI_URL: str = "/openapi.json"
+
+# --- 인증 / 세션 보안 --------------------------------------------------------
+# 단일 사용자 패스프레이즈. 값이 설정되면 인증이 활성화된다.
+# 미설정이면 개방 모드(로컬 개발 편의) — prod에서는 반드시 설정한다.
+# 2.3에서 Key Vault / Managed Identity 로 이전 예정.
+APP_PASSPHRASE: str = os.environ.get("APP_PASSPHRASE", "").strip()
+
+# 세션 쿠키 서명 키. prod에서는 안정적인 값을 주입한다(미설정 시 프로세스마다
+# 임의 생성 → 재시작 시 기존 세션 무효화). 2.3에서 Key Vault 로 이전 예정.
+SESSION_SECRET: str = (
+    os.environ.get("SESSION_SECRET", "").strip() or secrets.token_urlsafe(32)
+)
+
+# 세션 쿠키 Secure 플래그. prod(HTTPS)에서는 True 유지. 로컬 http/테스트는 0.
+SESSION_HTTPS_ONLY: bool = os.environ.get("SESSION_HTTPS_ONLY", "1").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
+# OpenAPI 문서 노출 토글. 보안 기본값 off — 로컬 개발은 ENABLE_DOCS=1 로 활성화.
+ENABLE_DOCS: bool = os.environ.get("ENABLE_DOCS", "0").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 # API 베이스 경로 (openapi servers.url = "/api")
 API_PREFIX: str = "/api"

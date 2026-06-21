@@ -10,6 +10,10 @@ from __future__ import annotations
 import os
 from collections.abc import Iterator
 
+# 테스트는 http(TestClient)로 동작하므로 Secure 세션 쿠키를 끄지 않으면
+# 로그인 쿠키가 유지되지 않는다. app/config import 전에 설정해야 한다.
+os.environ.setdefault("SESSION_HTTPS_ONLY", "0")
+
 import pytest
 from fastapi.testclient import TestClient
 

@@ -29,6 +29,10 @@ log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
 # ── 1. 필수 환경변수 확인 ────────────────────────────────────────────────────
 : "${AZURE_OPENAI_API_KEY:?'ERROR: AZURE_OPENAI_API_KEY 환경변수를 설정하세요'}"
+: "${APP_PASSPHRASE:?'ERROR: APP_PASSPHRASE 환경변수를 설정하세요(단일 사용자 로그인 비밀)'}"
+# 세션 서명 키: 미지정 시 1회용 자동 생성(이후 재배포 시 세션 무효화).
+# 안정적인 세션 유지가 필요하면 SESSION_SECRET 을 직접 주입하라.
+SESSION_SECRET="${SESSION_SECRET:-$(openssl rand -base64 32)}"
 
 # ── 2. 리소스 공급자 등록 ────────────────────────────────────────────────────
 for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.ContainerRegistry; do
@@ -80,6 +84,8 @@ az deployment group create \
     aoaiEndpoint="$AOAI_ENDPOINT" \
     aoaiApiKey="$AZURE_OPENAI_API_KEY" \
     aoaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}" \
+    appPassphrase="$APP_PASSPHRASE" \
+    sessionSecret="$SESSION_SECRET" \
     location="$LOCATION" \
   --output json | \
   python3 -c "

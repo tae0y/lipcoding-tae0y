@@ -61,6 +61,14 @@ class IdeaCreateRequest(BaseModel):
     )
 
 
+class LoginRequest(BaseModel):
+    passphrase: str = Field(
+        min_length=1,
+        max_length=256,
+        description="단일 사용자 패스프레이즈(길이 제한으로 남용/주입 방어)",
+    )
+
+
 class Idea(BaseModel):
     id: str
     text: str

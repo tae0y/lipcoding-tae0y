@@ -40,6 +40,14 @@ param aoaiDeployment string = 'gpt-4o'
 @description('Azure OpenAI API 버전')
 param aoaiApiVersion string = '2024-10-21'
 
+@description('단일 사용자 인증 패스프레이즈 (2.3에서 Key Vault로 이전 예정)')
+@secure()
+param appPassphrase string
+
+@description('세션 쿠키 서명 키 (안정값 주입 → 재시작 후에도 세션 유지)')
+@secure()
+param sessionSecret string
+
 @description('최소 레플리카 수 (0 = 스케일-투-제로, 1 = 콜드스타트 없음)')
 @minValue(0)
 @maxValue(3)
@@ -121,6 +129,14 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: 'aoai-api-key'
           value: aoaiApiKey
         }
+        {
+          name: 'app-passphrase'
+          value: appPassphrase
+        }
+        {
+          name: 'session-secret'
+          value: sessionSecret
+        }
       ]
     }
     template: {
@@ -137,6 +153,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'AZURE_OPENAI_API_KEY',      secretRef: 'aoai-api-key' }
             { name: 'AZURE_OPENAI_DEPLOYMENT',   value: aoaiDeployment }
             { name: 'AZURE_OPENAI_API_VERSION',  value: aoaiApiVersion }
+            { name: 'APP_PASSPHRASE',            secretRef: 'app-passphrase' }
+            { name: 'SESSION_SECRET',            secretRef: 'session-secret' }
+            { name: 'SESSION_HTTPS_ONLY',        value: '1' }
+            { name: 'ENABLE_DOCS',               value: '0' }
             { name: 'SKIP_COPILOT_SDK',          value: '0' }
             { name: 'PORT',                      value: '8000' }
           ]

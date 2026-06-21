@@ -10,6 +10,7 @@ dependencies = [
     "openai>=1.54",
     "sse-starlette>=3.4.4",
     "python-dotenv>=1.0",
+    "itsdangerous>=2.2",
 ]
 
 [tool.uv]

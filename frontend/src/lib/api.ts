@@ -6,15 +6,28 @@ import type {
     Suggestion,
     SuggestionDecision,
     WeeklyTriggerResult,
+    SessionInfo,
 } from "./types";
 
 const BASE_URL = "";
 
+// 세션 만료/미인증(401) 발생 시 호출되는 전역 핸들러. useAuth 가 등록한다.
+let onUnauthorized: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+    onUnauthorized = handler;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await fetch(BASE_URL + path, {
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         ...init,
     });
+
+    if (res.status === 401) {
+        onUnauthorized?.();
+    }
 
     if (!res.ok) {
         let message = res.statusText;
@@ -100,13 +113,34 @@ export function runResearch(ideaId: string): Promise<unknown> {
     return request<unknown>(`/api/ideas/${ideaId}/research`, { method: "POST" });
 }
 
+// --- Auth ------------------------------------------------------------------
+
+export function getSession(): Promise<SessionInfo> {
+    return request<SessionInfo>("/api/auth/session");
+}
+
+export function login(passphrase: string): Promise<{ authenticated: boolean }> {
+    return request<{ authenticated: boolean }>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ passphrase }),
+    });
+}
+
+export function logout(): Promise<{ authenticated: boolean }> {
+    return request<{ authenticated: boolean }>("/api/auth/logout", {
+        method: "POST",
+    });
+}
+
 export async function runResearchStream(
     ideaId: string,
     onDelta: (chunk: string) => void,
 ): Promise<void> {
     const res = await fetch(`/api/ideas/${ideaId}/research?stream=true`, {
         method: "POST",
+        credentials: "same-origin",
     });
+    if (res.status === 401) onUnauthorized?.();
     if (!res.ok) throw new Error(res.statusText);
     if (!res.body) return;
     const reader = res.body.getReader();
