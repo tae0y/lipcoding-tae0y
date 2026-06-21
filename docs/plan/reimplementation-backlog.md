@@ -31,7 +31,10 @@
 [../FEEDBACK.md](../FEEDBACK.md) 항목별 점수 기반. **Responsible AI/Security/Trust가 유일한 3점**.
 
 ### P0 — 신뢰/보안 (3점, 최우선)
-- [ ] 2.1 **인증/권한 추가** — 현재 누구나 아이디어 조회·삭제 API 호출 가능 (최소 API key 헤더 또는 토큰)
+- [x] 2.1 **인증/권한 추가** — 패스프레이즈 + 서명 세션 쿠키(Starlette `SessionMiddleware`,
+  HttpOnly·Secure·SameSite=Strict). `/api/*`·`/health/ai` 게이트 미들웨어(allowlist),
+  `/api/auth/{login,logout,session}`, 프론트 로그인 게이트+401 처리, bicep 시크릿 주입.
+  `APP_PASSPHRASE` 미설정 시 개방(로컬). `/docs`는 `ENABLE_DOCS` 기본 off.
 - [ ] 2.2 **파괴적 동작 확인** — 삭제 시 확인 단계 / 실행 취소(undo)
 - [ ] 2.3 **비밀값 관리** — API 키·ACR admin secret 직접 사용 → Key Vault / Managed Identity
 - [ ] 2.4 **프롬프트 인젝션 방어 명시화** — 도구 스키마 의존 → 입력 검증/가드 명시
@@ -51,11 +54,14 @@
 ## 3단계 — docs/assets 사진 기반 UI 개선
 
 > 새 스크린샷·스케치가 [../assets/](../assets) 에 있음 (최신: `2026-06-21 20.58.05.png`, `20260621_*`).
-> 다음 세션에서 이미지를 검토해 구체 항목 도출 예정.
+> 디자인 DNA [../design/design-dna.md](../design/design-dna.md),
+> ASCII 시안 [../design/ui-redesign-ascii.md](../design/ui-redesign-ascii.md) 작성 완료.
 
-- [ ] 3.1 assets 이미지 검토 후 개선 항목 목록화
-- [ ] 3.2 현재 화면(Capture/Inbox/Settings)과 대조
-- [ ] 3.3 2단계 2.9(UX 통제) 항목과 통합 반영
+- [x] 3.1 assets 이미지 검토 후 개선 항목 목록화 → 디자인 DNA 문서로 정리
+- [x] 3.2 현재 화면(Capture/Inbox/Settings)과 대조 → ASCII 시안 §5 변경 요약
+- [ ] 3.3 열린 결정 4건 합의 (라이트/다크·악센트·세리프·배경 강도, DNA §6)
+- [ ] 3.4 토큰·컴포넌트 코드 반영 (5칸 게이지, 글래스 표면, 203241 카드 템플릿)
+- [ ] 3.5 2단계 2.9(UX 통제) 항목과 통합 반영
 
 ---
 
