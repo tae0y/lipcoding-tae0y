@@ -240,10 +240,23 @@ def get_idea(idea_id: str) -> Idea:
 
 @app.delete(f"{config.API_PREFIX}/ideas/{{idea_id}}", status_code=204, tags=["ideas"])
 def delete_idea(idea_id: str) -> Response:
-    """아이디어 삭제."""
+    """아이디어 소프트 삭제(tombstone). restore 로 되돌릴 수 있다."""
     if not db.delete_idea(idea_id):
         raise HTTPException(status_code=404, detail="아이디어를 찾을 수 없음")
     return Response(status_code=204)
+
+
+@app.post(
+    f"{config.API_PREFIX}/ideas/{{idea_id}}/restore",
+    response_model=Idea,
+    tags=["ideas"],
+)
+def restore_idea(idea_id: str) -> Idea:
+    """소프트 삭제된 아이디어를 되돌린다(undo)."""
+    idea = db.restore_idea(idea_id)
+    if idea is None:
+        raise HTTPException(status_code=404, detail="되돌릴 아이디어를 찾을 수 없음")
+    return idea
 
 
 # --- Research --------------------------------------------------------------

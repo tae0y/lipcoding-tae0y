@@ -94,3 +94,35 @@ def test_delete_idea_removes_it(client: TestClient) -> None:
 def test_delete_missing_idea_returns_404(client: TestClient) -> None:
     r = client.delete("/api/ideas/does-not-exist")
     assert r.status_code == 404
+
+
+def test_deleted_idea_is_hidden_from_list(client: TestClient) -> None:
+    # 소프트 삭제된 항목은 목록 조회에서 제외된다.
+    created = client.post("/api/ideas", json={"text": "내일 치과 예약 전화하기"}).json()
+    client.delete(f"/api/ideas/{created['id']}")
+    assert client.get("/api/ideas").json() == []
+
+
+def test_delete_twice_returns_404(client: TestClient) -> None:
+    # tombstone 이후 재삭제는 대상 없음(404).
+    created = client.post("/api/ideas", json={"text": "내일 치과 예약 전화하기"}).json()
+    assert client.delete(f"/api/ideas/{created['id']}").status_code == 204
+    assert client.delete(f"/api/ideas/{created['id']}").status_code == 404
+
+
+def test_restore_idea_brings_it_back(client: TestClient) -> None:
+    # undo: 소프트 삭제 후 restore 하면 목록/단건 조회에 다시 나타난다.
+    created = client.post("/api/ideas", json={"text": "내일 치과 예약 전화하기"}).json()
+    client.delete(f"/api/ideas/{created['id']}")
+    r = client.post(f"/api/ideas/{created['id']}/restore")
+    assert r.status_code == 200
+    assert r.json()["id"] == created["id"]
+    assert client.get(f"/api/ideas/{created['id']}").status_code == 200
+    assert len(client.get("/api/ideas").json()) == 1
+
+
+def test_restore_non_deleted_idea_returns_404(client: TestClient) -> None:
+    # 삭제되지 않은(또는 없는) 아이디어 restore 는 대상 없음.
+    created = client.post("/api/ideas", json={"text": "내일 치과 예약 전화하기"}).json()
+    assert client.post(f"/api/ideas/{created['id']}/restore").status_code == 404
+    assert client.post("/api/ideas/does-not-exist/restore").status_code == 404

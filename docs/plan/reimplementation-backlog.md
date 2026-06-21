@@ -51,7 +51,10 @@
   HttpOnly·Secure·SameSite=Strict). `/api/*`·`/health/ai` 게이트 미들웨어(allowlist),
   `/api/auth/{login,logout,session}`, 프론트 로그인 게이트+401 처리, bicep 시크릿 주입.
   `APP_PASSPHRASE` 미설정 시 개방(로컬). `/docs`는 `ENABLE_DOCS` 기본 off.
-- [ ] 2.2 **파괴적 동작 확인** — 삭제 시 확인 단계 / 실행 취소(undo)
+- [x] 2.2 **파괴적 동작 확인** — 소프트 삭제(tombstone)+undo. `ideas.deleted_at` 컬럼
+  +마이그레이션, 삭제=tombstone·목록 제외, `POST /api/ideas/{id}/restore`(undo),
+  내부 `purge_deleted()` 정리 헬퍼. 프론트는 낙관적 제거 + 10초 글래스 되돌리기 토스트
+  (디자인 DNA glass 표면). openapi.yaml/json 갱신, 백엔드 테스트 4건 추가(38 통과).
 - [ ] 2.3 **비밀값 관리** — API 키·ACR admin secret 직접 사용 → Key Vault / Managed Identity
 - [ ] 2.4 **프롬프트 인젝션 방어 명시화** — 도구 스키마 의존 → 입력 검증/가드 명시
 

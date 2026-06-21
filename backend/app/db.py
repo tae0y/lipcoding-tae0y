@@ -45,7 +45,8 @@ def init_db() -> None:
                 status TEXT NOT NULL,
                 dump_reason TEXT,
                 research TEXT,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                deleted_at TEXT
             );
 
             CREATE TABLE IF NOT EXISTS user_state (
@@ -65,6 +66,11 @@ def init_db() -> None:
             );
             """
         )
+        # 기존 DB 마이그레이션: CREATE TABLE IF NOT EXISTS 로는 컬럼이 추가되지
+        # 않으므로 deleted_at 부재 시 ALTER TABLE 로 보강한다(소프트 삭제용).
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(ideas)")}
+        if "deleted_at" not in columns:
+            conn.execute("ALTER TABLE ideas ADD COLUMN deleted_at TEXT")
         existing = conn.execute(
             "SELECT id FROM user_state WHERE id = ?", (_USER_STATE_ID,)
         ).fetchone()
@@ -122,7 +128,7 @@ def list_ideas(
 ) -> list[Idea]:
     """상태/사유 필터로 아이디어를 조회한다(최신순)."""
     query = "SELECT * FROM ideas"
-    clauses: list[str] = []
+    clauses: list[str] = ["deleted_at IS NULL"]
     params: list[Any] = []
     if status is not None:
         clauses.append("status = ?")
@@ -130,8 +136,7 @@ def list_ideas(
     if dump_reason is not None:
         clauses.append("dump_reason = ?")
         params.append(dump_reason)
-    if clauses:
-        query += " WHERE " + " AND ".join(clauses)
+    query += " WHERE " + " AND ".join(clauses)
     query += " ORDER BY created_at DESC"
     with _connect() as conn:
         rows = conn.execute(query, params).fetchall()
@@ -140,7 +145,9 @@ def list_ideas(
 
 def get_idea(idea_id: str) -> Idea | None:
     with _connect() as conn:
-        row = conn.execute("SELECT * FROM ideas WHERE id = ?", (idea_id,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM ideas WHERE id = ? AND deleted_at IS NULL", (idea_id,)
+        ).fetchone()
     return _row_to_idea(row) if row else None
 
 
@@ -164,10 +171,41 @@ def update_idea(idea: Idea) -> Idea:
 
 
 def delete_idea(idea_id: str) -> bool:
-    """삭제 성공 여부를 반환한다."""
+    """소프트 삭제(tombstone). 이미 삭제됐거나 없으면 False.
+
+    실제 행은 남기고 deleted_at 만 채워 undo(restore)로 되돌릴 수 있게 한다.
+    """
     with _connect() as conn:
-        cur = conn.execute("DELETE FROM ideas WHERE id = ?", (idea_id,))
+        cur = conn.execute(
+            "UPDATE ideas SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL",
+            (_now_iso(), idea_id),
+        )
         return cur.rowcount > 0
+
+
+def restore_idea(idea_id: str) -> Idea | None:
+    """소프트 삭제된 아이디어를 복구한다. 복구 대상이 없으면 None."""
+    with _connect() as conn:
+        cur = conn.execute(
+            "UPDATE ideas SET deleted_at = NULL WHERE id = ? AND deleted_at IS NOT NULL",
+            (idea_id,),
+        )
+        if cur.rowcount == 0:
+            return None
+        row = conn.execute(
+            "SELECT * FROM ideas WHERE id = ?", (idea_id,)
+        ).fetchone()
+    return _row_to_idea(row) if row else None
+
+
+def purge_deleted() -> int:
+    """tombstone(소프트 삭제된 행)를 물리 삭제한다. 삭제 건수를 반환한다.
+
+    정리/유지보수용 내부 헬퍼. 현재 UI/엔드포인트에는 노출하지 않는다.
+    """
+    with _connect() as conn:
+        cur = conn.execute("DELETE FROM ideas WHERE deleted_at IS NOT NULL")
+        return cur.rowcount
 
 
 # --- UserState -------------------------------------------------------------
