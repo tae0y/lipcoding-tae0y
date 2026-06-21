@@ -52,10 +52,8 @@ What the implementation is held against: requirements, contract, schedule, remai
 | [ui-wireframes.md](plan/ui-wireframes.md) | The two-screen ASCII wireframes confirmed in the same session. |
 | [openapi.yaml](plan/openapi.yaml) | The REST API contract the backend and frontend both follow. |
 | [openapi.json](plan/openapi.json) | A JSON conversion of the contract for tooling. |
-| [competition-plan.md](plan/competition-plan.md) | The time-block plan that protects the end-to-end baseline and the deploy deadline. |
-| [remaining-work.md](plan/remaining-work.md) | An audit of unimplemented items against the spec, with a priority order. |
-| [handover-prompt.md](plan/handover-prompt.md) | A paste-ready prompt to carry context into the next coding session. |
 | [completed/](plan/completed) | Design docs frozen once their work was implemented. |
+| [archive/v0.0.1/](archive/v0.0.1) | Competition-era docs (root PRD/README + plan schedule, remaining-work, handover), frozen at v0.0.1. |
 
 ### presentation/ — the pitch
 

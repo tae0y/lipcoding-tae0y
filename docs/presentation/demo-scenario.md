@@ -7,7 +7,7 @@
 >
 > 상위 문서: [app-requirements.md](../plan/app-requirements.md) ·
 > [ui-wireframes.md](../plan/ui-wireframes.md) ·
-> [competition-plan.md](../plan/competition-plan.md)
+> [competition-plan.md](../archive/v0.0.1/plan/competition-plan.md)
 
 ---
 

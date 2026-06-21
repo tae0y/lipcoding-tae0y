@@ -67,30 +67,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
-## Voice-dictated instructions
-
-My instructions reach you through a microphone (speech-to-text), so the transcript may contain
-errors, missing words, or odd phrasing.
-
-- Infer my intent from context and proceed — don't stall on small transcription glitches.
-- Don't ask for confirmation on routine, reversible steps; just do them.
-- Only stop to confirm when something is genuinely necessary and ambiguous — e.g. a destructive
-  or hard-to-reverse action, or a decision that materially shapes the app.
-- If a specific word or term is unclear or seems mis-transcribed, ask what I meant rather than guessing.
-
-## Time-aware execution (competition plan)
-
-This is a timed competition. Work against the time-allocation plan in
-[docs/plan/competition-plan.md](docs/plan/competition-plan.md).
-
-- Before non-trivial work, check the current time by running `date` in the shell
-  (do NOT rely on context-provided dates — they only carry the date, not the time).
-- Map the current time to the plan's blocks (사전 준비 / 입코딩 A–F) and tell me which
-  block we are in and how much time is left in it.
-- Prioritize tasks by the plan: protect the "엔드투엔드로 돈다" baseline and the
-  15:40 배포 데드라인. If we are behind schedule, say so and propose what to cut.
-- Keep scope to the plan (3 screens, the 필수 3종). Flag any work that drifts beyond it.
-
 ## Git commits
 
 - When committing, only stage and commit the files that were actually worked on in
