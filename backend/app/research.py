@@ -59,6 +59,17 @@ def _make_client() -> CopilotClient:
 # 조립한다. 이것이 "API 한 번 호출" → "도구 호출 오케스트레이션"의 본질적 차이.
 
 
+class WebSearchParams(BaseModel):
+    query: str = Field(
+        description="검색어. 아이디어 실행에 필요한 정보(수치·사례·툴·실패 요인 등)를 찾기 위한 "
+                    "구체적인 한국어 또는 영문 검색어."
+    )
+    max_results: int = Field(
+        default=5, ge=1, le=10,
+        description="최대 결과 수. 기본 5."
+    )
+
+
 class CollectMaterialsParams(BaseModel):
     materials: list[dict] = Field(
         description="재료 목록. 각 항목은 {fact: str, url?: str} 형식. "
@@ -79,12 +90,53 @@ class FrameOptionsParams(BaseModel):
     )
 
 
-def _make_research_tools(store: dict, on_tool=None) -> list:
-    """이번 생성 1회에 바인딩된 도구 2개를 만든다.
+def _tavily_search_sync(query: str, max_results: int) -> list[dict]:
+    """Tavily 웹 검색 — 동기, 스레드에서 실행한다.
 
+    TAVILY_API_KEY 미설정 시 빈 리스트를 반환해 모델이 학습 데이터로 폴백하도록 한다.
+    """
+    api_key = os.environ.get("TAVILY_API_KEY", "").strip()
+    if not api_key:
+        logger.debug("TAVILY_API_KEY 미설정 — 웹 검색 건너뜀")
+        return []
+    try:
+        from tavily import TavilyClient  # type: ignore[import-untyped]
+
+        client = TavilyClient(api_key=api_key)
+        resp = client.search(query=query, max_results=max_results)
+        return [
+            {
+                "title": r.get("title", ""),
+                "url": r.get("url", ""),
+                "snippet": r.get("content", "")[:400],  # 토큰 절약: 400자 상한
+            }
+            for r in resp.get("results", [])
+        ]
+    except Exception as exc:
+        logger.warning("Tavily 검색 실패: %s", exc)
+        return []
+
+
+def _make_research_tools(store: dict, on_tool=None) -> list:
+    """이번 생성 1회에 바인딩된 도구 3개를 만든다.
+
+    web_search → collect_materials → frame_options 순서로 멀티턴 에이전트 루프.
     핸들러가 받은 구조화 인자를 ``store`` 에 적재한다(= 도구 호출이 곧 결과).
     ``on_tool(name, count)`` 가 주어지면 도구 발화를 외부(스트림)로 알린다.
     """
+
+    @define_tool(
+        description="실제 웹 검색을 수행해 아이디어 관련 최신 정보·사례·수치를 가져온다. "
+                    "collect_materials 를 호출하기 전에 반드시 먼저 이 도구로 사실을 수집하라. "
+                    "검색 결과는 모델에게만 보이며, 선별해 collect_materials 에 넘겨야 한다."
+    )
+    async def web_search(params: WebSearchParams) -> dict:
+        results = await asyncio.to_thread(
+            _tavily_search_sync, params.query, params.max_results
+        )
+        if on_tool is not None:
+            on_tool("web_search", len(results))
+        return {"results": results, "count": len(results)}
 
     @define_tool(
         description="아이디어 실행에 바로 쓰이는 구체적 사실·참고 재료를 수집해 보관한다. "
@@ -114,7 +166,7 @@ def _make_research_tools(store: dict, on_tool=None) -> list:
             on_tool("frame_options", len(options))
         return {"ok": True, "framed": len(options)}
 
-    return [collect_materials, frame_options]
+    return [web_search, collect_materials, frame_options]
 
 
 def _research_from_store(store: dict) -> Research | None:
@@ -266,18 +318,17 @@ async def _generate_research_sdk(idea_text: str) -> Research:
 
     prompt = (
         guarded_idea_block(idea_text, context="research") + "\n\n"
-        "너는 사전조사 에이전트다. 위 아이디어 데이터에 대해 아래 두 도구를 직접 호출해 조사를 완성하라:\n"
-        "1. collect_materials — 착수에 바로 쓰이는 구체적 사실 3~5개\n"
-        "2. frame_options — 다음에 시도할 구체적 행동 프레임 2~4개\n\n"
-        "결과는 오직 도구 호출로만 전달한다. 도구를 호출하지 않으면 아무 결과도 저장되지 않는다.\n"
-        "별도의 설명 문장이나 JSON 텍스트를 추가로 출력할 필요는 없다.\n\n"
+        "너는 사전조사 에이전트다. 아래 순서로 도구를 호출해 조사를 완성하라:\n"
+        "1. web_search — 아이디어와 관련된 구체적 검색어로 1~2회 실제 웹 검색\n"
+        "   (수치·구현 방법·필요 도구·흔한 실패 요인·실제 사례를 찾을 수 있는 검색어를 쓴다)\n"
+        "2. collect_materials — 검색 결과에서 착수에 바로 쓰이는 사실 3~5개 수집\n"
+        "   (검색 결과의 URL이 있으면 url 필드에 반드시 포함)\n"
+        "3. frame_options — 다음에 시도할 구체적 행동 프레임 2~4개 정리\n\n"
+        "결과는 오직 도구 호출로만 전달한다. 설명 문장이나 JSON 텍스트 추가 불필요.\n\n"
         "매우 중요 — 반드시 지켜라:\n"
-        "- 아이디어가 무엇인지 정의·설명하지 말 것. 사용자는 이미 안다. "
-        "'○○은 ~이다', '○○은 ~할 수 있다' 같은 일반론·사전적 문장은 금지.\n"
-        "- 대신 실행자가 당장 참고할 구체 정보만: 적정 수치, 준비 체크리스트, "
-        "쓸 만한 툴·플랫폼 이름, 흔한 실패 요인, 참고 사례.\n"
-        "- '다음 액션을 ○○하라'는 지시는 생성하지 말 것. "
-        "재료와 선택지만 제공하고 결정은 사람의 몫으로 남긴다."
+        "- 아이디어가 무엇인지 정의·설명하지 말 것('○○은 ~이다' 금지). 사용자는 이미 안다.\n"
+        "- 실행자가 당장 참고할 구체 정보만: 수치, 준비 체크리스트, 툴·플랫폼 이름, 실패 요인, 실제 사례.\n"
+        "- '다음 액션을 ○○하라'는 지시는 생성 금지. 재료와 선택지만 제공하고 결정은 사람 몫."
     )
 
     async with _make_client() as client:
@@ -369,12 +420,16 @@ async def _generate_research_stream_sdk(idea_text: str) -> AsyncIterator[dict]:
 
     prompt = (
         guarded_idea_block(idea_text, context="research-stream") + "\n\n"
-        "너는 사전조사 에이전트다. 위 아이디어 데이터에 대해 collect_materials 도구와 frame_options 도구를 "
-        "각각 한 번 이상 반드시 호출하라. 결과는 오직 도구 호출로만 전달한다"
-        "(별도 JSON/설명 텍스트 불필요). 도구를 호출하지 않으면 결과가 저장되지 않는다.\n"
+        "너는 사전조사 에이전트다. 아래 순서로 도구를 호출해 조사를 완성하라:\n"
+        "1. web_search — 아이디어와 관련된 구체적 검색어로 1~2회 실제 웹 검색\n"
+        "   (수치·구현 방법·필요 도구·흔한 실패 요인·실제 사례를 찾을 수 있는 검색어를 쓴다)\n"
+        "2. collect_materials — 검색 결과에서 착수에 바로 쓰이는 사실 3~5개 수집\n"
+        "   (검색 결과의 URL이 있으면 url 필드에 반드시 포함)\n"
+        "3. frame_options — 다음에 시도할 구체적 행동 프레임 2~4개 정리\n\n"
+        "결과는 오직 도구 호출로만 전달한다. 설명 문장이나 JSON 텍스트 추가 불필요.\n"
         "매우 중요: 아이디어가 무엇인지 정의·설명하지 말 것('○○은 ~이다' 금지). "
-        "사용자는 이미 안다. 대신 착수에 바로 쓰이는 구체적 사실(수치·체크리스트·툴 이름·"
-        "실패 요인·참고 사례)과 다음에 시도할 구체적 행동 프레임만 담아라."
+        "실행자가 당장 참고할 구체 정보(수치·체크리스트·툴 이름·실패 요인·실제 사례)와 "
+        "구체적 행동 프레임만 담아라."
     )
 
     async with _make_client() as client:

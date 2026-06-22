@@ -18,7 +18,7 @@
 | 2.2 소프트 삭제 + undo | ✅ 완료 | `84faad1`, `0198bad` |
 | 2.3 비밀값 Key Vault화 (UAMI + KV + ACR MI 풀) | ✅ 완료 | `1db94be` |
 | 2.4 프롬프트 인젝션 방어 명시화 (입력 정제 + 탐지 + 신뢰경계) | ✅ 완료 | (이번 세션) |
-| **다음** | 트랙 C: 3.3 디자인 결정 합의·3.4 토큰 통일 · 트랙 E: 2.5~2.7 Copilot SDK 완성도 | — |
+| **다음** | 트랙 C: 3.3 디자인 결정 합의·3.4 토큰 통일 · 트랙 E: 2.6~2.7 Copilot SDK 완성도 | — |
 
 > 현재 `main`은 `origin/main`보다 앞서 있음(미푸시). 테스트 실행: `cd backend && uv run python -m pytest -q`
 > (PATH에 bare `python`/`pip` 없음 — 반드시 `uv run`). 인증 구현 상세는 repo memory
@@ -70,7 +70,8 @@
   모델 사본만 정제. 테스트 14건 추가(`tests/test_prompt_guard.py`, 52 통과).
 
 ### P1 — Copilot SDK / 기능 완성도 (각 4점)
-- [ ] 2.5 **도구가 실제 외부 검색 수행** — 모델 출력 구조화 채널 → 진짜 멀티턴 에이전트 루프 (1.2와 연결)
+- [x] 2.5 **도구가 실제 외부 검색 수행** — Tavily `web_search` 도구 추가 + 멀티턴 에이전트 루프
+  (web_search → collect_materials → frame_options 순서 강제, URL 실링크 포함). (1.2와 연결)
 - [ ] 2.6 **주간 추천 실제 스케줄러 + 임베딩 랭킹** (1.3·1.4와 연결)
 - [ ] 2.7 **테스트가 실제 Copilot SDK 경로 커버** — 현재 휴리스틱 우회 테스트 중심
 

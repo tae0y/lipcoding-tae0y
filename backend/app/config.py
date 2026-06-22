@@ -45,6 +45,10 @@ API_PREFIX: str = "/api"
 # SQLite 파일 경로. 배포 시 Azure Files 볼륨(/data)에 마운트.
 DB_PATH: str = os.environ.get("APP_DB_PATH", "./data/app.db")
 
+# Tavily 웹 검색 API 키. 설정 시 사전조사에서 실제 외부 검색 수행.
+# 미설정이면 web_search 도구가 빈 결과를 반환해 모델 학습 데이터만 사용.
+TAVILY_API_KEY: str = os.environ.get("TAVILY_API_KEY", "").strip()
+
 # CORS 허용 오리진 (프론트 개발 서버)
 CORS_ORIGINS: list[str] = os.environ.get(
     "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
