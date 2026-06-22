@@ -15,7 +15,9 @@
 | 1·2·3단계 목록화 (이 문서) | ✅ 완료 | `56ae78b` |
 | 2.1 인증 — 패스프레이즈 + 서명 세션 쿠키 | ✅ 완료 | `4560185` |
 | 3.1·3.2 UI 시안 — 디자인 DNA + ASCII 개편안 | ✅ 완료 | `3a0bf19` |
-| **다음** | 트랙 A: 2.2 삭제 확인/undo · 트랙 B: 2.3 Key Vault(2.1 연계) · 트랙 C: 3.3 디자인 결정 합의 | — |
+| 2.2 소프트 삭제 + undo | ✅ 완료 | `84faad1`, `0198bad` |
+| 2.3 비밀값 Key Vault화 (UAMI + KV + ACR MI 풀) | ✅ 완료 | (이번 세션) |
+| **다음** | 트랙 C: 3.3 디자인 결정 합의·3.4 토큰 통일 · 트랙 D: 2.4 프롬프트 인젝션 방어 | — |
 
 > 현재 `main`은 `origin/main`보다 앞서 있음(미푸시). 테스트 실행: `cd backend && uv run python -m pytest -q`
 > (PATH에 bare `python`/`pip` 없음 — 반드시 `uv run`). 인증 구현 상세는 repo memory
@@ -55,7 +57,10 @@
   +마이그레이션, 삭제=tombstone·목록 제외, `POST /api/ideas/{id}/restore`(undo),
   내부 `purge_deleted()` 정리 헬퍼. 프론트는 낙관적 제거 + 10초 글래스 되돌리기 토스트
   (디자인 DNA glass 표면). openapi.yaml/json 갱신, 백엔드 테스트 4건 추가(38 통과).
-- [ ] 2.3 **비밀값 관리** — API 키·ACR admin secret 직접 사용 → Key Vault / Managed Identity
+- [x] 2.3 **비밀값 관리** — User-Assigned Managed Identity + Key Vault(RBAC). 앱 시크릿
+  (`aoai-api-key`/`app-passphrase`/`session-secret`) 평문 주입 → Key Vault 보관·UAMI 참조
+  (`keyVaultUrl`). ACR `adminUserEnabled:false` + UAMI `AcrPull` 로 MI 풀(admin 비밀 제거).
+  `deploy-aca.sh`: 배포자 RG 범위 `Key Vault Secrets Officer` 부여 + ARM 토큰 인증 활성화.
 - [ ] 2.4 **프롬프트 인젝션 방어 명시화** — 도구 스키마 의존 → 입력 검증/가드 명시
 
 ### P1 — Copilot SDK / 기능 완성도 (각 4점)

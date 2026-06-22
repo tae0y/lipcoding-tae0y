@@ -35,7 +35,7 @@ log() { echo "[$(date '+%H:%M:%S')] $*"; }
 SESSION_SECRET="${SESSION_SECRET:-$(openssl rand -base64 32)}"
 
 # ── 2. 리소스 공급자 등록 ────────────────────────────────────────────────────
-for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.ContainerRegistry; do
+for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.ContainerRegistry Microsoft.KeyVault Microsoft.ManagedIdentity; do
   STATE=$(az provider show -n "$provider" --query registrationState -o tsv 2>/dev/null || echo "NotRegistered")
   if [[ "$STATE" != "Registered" ]]; then
     log "$provider 등록 중..."
@@ -48,9 +48,13 @@ log "리소스 그룹: $RG ($LOCATION)"
 az group create -n "$RG" -l "$LOCATION" --output none
 
 # ── 4. ACR 사전 생성 (이미지 빌드에 필요) ───────────────────────────────────
+# admin 비밀 비활성 → 앱은 Managed Identity 로 풀(2.3). 빌드/푸시는 az AAD 토큰 사용.
 log "ACR 생성/확인: $ACR_NAME"
-az acr create -n "$ACR_NAME" -g "$RG" --sku Basic --admin-enabled true \
+az acr create -n "$ACR_NAME" -g "$RG" --sku Basic --admin-enabled false \
   --output none 2>/dev/null || log "ACR 이미 존재함, 재사용"
+
+# MI 풀은 ARM audience 토큰 인증이 활성화돼야 함.
+az acr config authentication-as-arm update -r "$ACR_NAME" --status enabled --output none 2>/dev/null || true
 
 ACR_LOGIN_SERVER=$(az acr show -n "$ACR_NAME" -g "$RG" --query loginServer -o tsv 2>/dev/null | tr -d '\n\r ')
 if [[ -z "$ACR_LOGIN_SERVER" ]]; then
@@ -68,6 +72,31 @@ docker build --platform linux/amd64 -t "$IMAGE" -f "$ROOT/Dockerfile" "$ROOT"
 
 log "이미지 푸시: $IMAGE"
 docker push "$IMAGE"
+
+# ── 5.5 배포자 Key Vault 시크릿 기록 권한 ────────────────────────────────────
+# bicep 이 Key Vault 에 시크릿을 기록하려면 배포 주체(현재 az 로그인)가 데이터
+# 평면 권한을 가져야 한다. RG 범위로 'Key Vault Secrets Officer' 를 부여해 둔다
+# (RBAC 모델 KV 에 상속). 전파 지연을 흡수하도록 배포 전에 먼저 부여한다.
+log "배포자 Key Vault 권한 확인/부여"
+DEPLOYER_OID=$(az ad signed-in-user show --query id -o tsv 2>/dev/null || true)
+DEPLOYER_TYPE="User"
+if [[ -z "$DEPLOYER_OID" ]]; then
+  SP_APPID=$(az account show --query user.name -o tsv 2>/dev/null || true)
+  DEPLOYER_OID=$(az ad sp show --id "$SP_APPID" --query id -o tsv 2>/dev/null || true)
+  DEPLOYER_TYPE="ServicePrincipal"
+fi
+if [[ -n "$DEPLOYER_OID" ]]; then
+  RG_ID=$(az group show -n "$RG" --query id -o tsv)
+  az role assignment create \
+    --role "Key Vault Secrets Officer" \
+    --assignee-object-id "$DEPLOYER_OID" \
+    --assignee-principal-type "$DEPLOYER_TYPE" \
+    --scope "$RG_ID" --output none 2>/dev/null \
+    && log "Key Vault Secrets Officer 부여(전파 대기 ~30s)" && sleep 30 \
+    || log "역할 이미 존재하거나 권한 부족 — 기존 부여 가정하고 진행"
+else
+  log "⚠ 배포자 objectId 확인 실패 — KV 시크릿 기록이 실패하면 수동 부여 필요"
+fi
 
 # ── 6. Bicep 배포 ────────────────────────────────────────────────────────────
 AOAI_ENDPOINT=$(az cognitiveservices account show \

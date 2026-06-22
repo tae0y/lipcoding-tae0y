@@ -14,7 +14,8 @@ param aoaiDeployment  = 'gpt-4o'
 param aoaiApiVersion  = '2024-10-21'
 
 // ── 인증/세션 (2.1) ───────────────────────────────────────────────────────────
-// 환경변수로 주입 — 파일에 직접 쓰지 말 것. 2.3에서 Key Vault 로 이전 예정.
+// 환경변수로 주입 — 파일에 직접 쓰지 말 것. 2.3: bicep 이 이 값을 Key Vault 시크릿
+// (app-passphrase/session-secret)으로 보관하고, Container App 은 UAMI 로 참조한다.
 param appPassphrase = readEnvironmentVariable('APP_PASSPHRASE')
 param sessionSecret = readEnvironmentVariable('SESSION_SECRET')
 
