@@ -75,9 +75,14 @@
 - [ ] 2.7 **테스트가 실제 Copilot SDK 경로 커버** — 현재 휴리스틱 우회 테스트 중심
 
 ### P2 — 클라우드/UX/임팩트 (각 4점)
-- [ ] 2.8 **Azure OpenAI를 IaC로** — 기존 리소스 전제 → bicep에 포함
+- [x] 2.8 **Azure OpenAI를 IaC로** — bicep에 AOAI 계정+`gpt-4o` 배포 포함(`createAoai` 토글로
+  신규/기존 선택, 동명 계정 멱등 흡수). `aoai-api-key` KV 시크릿을 `listKeys()`로 채워
+  배포자 수동 키 주입 제거(`aoaiApiKey`/`aoaiEndpoint` 파라미터 삭제, endpoint는 리소스에서
+  파생). `deploy-aca.sh`: 키/endpoint 주입 로직 제거 + `Microsoft.CognitiveServices` 등록.
 - [ ] 2.9 **UX 통제 장치** — 입력창 명시적 label, 사전조사 실패 노출, AI 작업 취소/결정 되돌리기
 - [ ] 2.10 **생산성 정량 근거** — 절약 시간/단계 감소/오류 예방 측정 지표
+- [ ] 2.11 **`azd up` 한 줄 배포 래퍼** — `azure.yaml` + 현 `infra/main.bicep` 재사용으로
+  azd 컨벤션 포장. 현 `scripts/deploy-aca.sh` 경로와 **둘 중 하나만** 유지(중복 방지).
 
 ---
 

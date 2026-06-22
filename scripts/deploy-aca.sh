@@ -2,15 +2,19 @@
 # Azure Container Apps 배포 스크립트 (Bicep 기반)
 #
 # 사용:
-#   export AZURE_OPENAI_API_KEY="<key>"
+#   export APP_PASSPHRASE="<단일 사용자 로그인 비밀>"
 #   bash scripts/deploy-aca.sh
 #
 # 또는 ACR 이름 직접 지정:
 #   ACR_NAME=lipcoding1234 bash scripts/deploy-aca.sh
 #
+# Azure OpenAI(2.8): bicep 이 AOAI 계정+gpt-4o 배포를 IaC 로 관리하고,
+#   키는 listKeys()로 Key Vault 에 직접 흘린다 → AZURE_OPENAI_API_KEY 수동 주입 불필요.
+#   기존 AOAI 계정만 쓰려면 bicepparam 에서 createAoai=false 로 설정.
+#
 # 전제조건:
 #   az login + az account set --subscription <ID>
-#   AZURE_OPENAI_API_KEY 환경변수 설정
+#   APP_PASSPHRASE 환경변수 설정
 #   Microsoft.App 공급자 등록 (스크립트가 자동 처리)
 set -euo pipefail
 
@@ -28,14 +32,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
 # ── 1. 필수 환경변수 확인 ────────────────────────────────────────────────────
-: "${AZURE_OPENAI_API_KEY:?'ERROR: AZURE_OPENAI_API_KEY 환경변수를 설정하세요'}"
+# AOAI 키는 bicep 이 listKeys()로 IaC 리소스에서 직접 가져온다(2.8) → 수동 주입 제거.
 : "${APP_PASSPHRASE:?'ERROR: APP_PASSPHRASE 환경변수를 설정하세요(단일 사용자 로그인 비밀)'}"
 # 세션 서명 키: 미지정 시 1회용 자동 생성(이후 재배포 시 세션 무효화).
 # 안정적인 세션 유지가 필요하면 SESSION_SECRET 을 직접 주입하라.
 SESSION_SECRET="${SESSION_SECRET:-$(openssl rand -base64 32)}"
 
 # ── 2. 리소스 공급자 등록 ────────────────────────────────────────────────────
-for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.ContainerRegistry Microsoft.KeyVault Microsoft.ManagedIdentity; do
+for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.ContainerRegistry Microsoft.KeyVault Microsoft.ManagedIdentity Microsoft.CognitiveServices; do
   STATE=$(az provider show -n "$provider" --query registrationState -o tsv 2>/dev/null || echo "NotRegistered")
   if [[ "$STATE" != "Registered" ]]; then
     log "$provider 등록 중..."
@@ -99,10 +103,7 @@ else
 fi
 
 # ── 6. Bicep 배포 ────────────────────────────────────────────────────────────
-AOAI_ENDPOINT=$(az cognitiveservices account show \
-  -g rg-lipcoding -n aoai-lipcoding-tae0yp \
-  --query properties.endpoint -o tsv)
-
+# AOAI 계정+gpt-4o 배포는 bicep 이 IaC 로 생성/흡수하고 endpoint/key 를 직접 계산한다(2.8).
 log "Bicep 배포 시작..."
 az deployment group create \
   --resource-group "$RG" \
@@ -110,8 +111,6 @@ az deployment group create \
   --parameters \
     acrName="$ACR_NAME" \
     containerImage="$IMAGE" \
-    aoaiEndpoint="$AOAI_ENDPOINT" \
-    aoaiApiKey="$AZURE_OPENAI_API_KEY" \
     aoaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}" \
     appPassphrase="$APP_PASSPHRASE" \
     sessionSecret="$SESSION_SECRET" \

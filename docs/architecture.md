@@ -70,67 +70,75 @@ CopilotClient.create_session(
 
 ## 2. Azure Cloud Deployment Architecture
 
-### 2.1 Overall Layout — Single App Service, Zero CORS
+### 2.1 Overall Layout — Single Container, Zero CORS
 
 ```text
                     User's browser
                        │  HTTPS
                        ▼
 ┌───────────────────────────────────────────────────────────┐
-│  Azure App Service (Linux, Python 3.12, Always On)          │
-│  gunicorn → uvicorn worker → FastAPI (app.main:app)         │
+│  Azure Container Apps (Linux, FastAPI + built SPA)          │
+│  uvicorn → FastAPI (app.main:app), ingress :8000            │
 │                                                            │
 │   GET /            ──▶ serves the built SPA (index.html)    │
-│   GET /api/*       ──▶ REST API                            │
+│   GET /api/*       ──▶ REST API (auth-gated)               │
 │      └─ judgment / research / suggestions                   │
 │                       │                                    │
 │        ┌──────────────┼───────────────┐                    │
 │        ▼              ▼                ▼                    │
-│   Copilot SDK    SQLite file      /health/ai                │
-│        │         /data/app.db     (model liveness check)    │
-│        ▼              │                                    │
-└────────┼──────────────┼────────────────────────────────────┘
-         ▼              ▼
-   Azure OpenAI   Azure Files volume (data survives restarts)
+│   Copilot SDK /   SQLite file      /health/ai               │
+│   Azure OpenAI    (container FS)    (model liveness check)   │
+└────────┬───────────────┬───────────────┬───────────────────┘
+         │ image pull      │ secrets        │ model
+         ▼ (UAMI/AcrPull)  ▼ (UAMI ref)     ▼
+       ACR             Key Vault        Azure OpenAI (IaC)
 ```
 
-**Key decision:** FastAPI **serves the built SPA static files from the same origin.**
-Frontend and backend are not split, so **CORS disappears entirely** and the whole thing
-ships as one resource, one deployment.
+**Key decision:** FastAPI **serves the built SPA static files from the same origin**, so
+**CORS disappears entirely** and the whole thing ships as one image, one Container App.
 
-### 2.2 Why App Service
+### 2.2 Why Container Apps
 
 | Option | Verdict |
 |------|------|
 | Static Web Apps + managed Functions | FastAPI must be wrapped in the Functions model → ❌ |
-| Container Apps | Dockerfile + ACR build + ingress → first deploy too heavy → ❌ |
-| **App Service (Python)** | Oryx builds `requirements.txt` natively, `az webapp up` in one shot → ✅ |
+| App Service (Python) | `az webapp up` was simple but built on the host and mixed in secrets → ❌ |
+| **Container Apps + ACR** | One Docker image runs identically local → cloud; Key Vault + Managed Identity native → ✅ |
+
+The submission first shipped on App Service; the re-implementation moved to Container Apps
+so the same container runs everywhere and secrets stay out of the host.
 
 ### 2.3 Deployment Flow
 
+[scripts/deploy-aca.sh](../scripts/deploy-aca.sh) runs the whole path idempotently:
+
 ```bash
-# 1) build the frontend → copy into backend/static/ (scripts/build.sh)
-./scripts/build.sh
-
-# 2) create + deploy in one shot from the backend folder
-az webapp up --name $APP --resource-group $RG \
-  --runtime "PYTHON:3.12" --sku B1            # B1 = Always On (no cold start)
-
-# 3) start with a uvicorn worker
-az webapp config set -g $RG -n $APP \
-  --startup-file "gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 app.main:app"
+# one script does the rest after the frontend build → backend/static/
+bash scripts/deploy-aca.sh
+#    ├─ register resource providers (App / KeyVault / ManagedIdentity / CognitiveServices …)
+#    ├─ create RG + ACR (admin disabled), build & push the image
+#    ├─ grant the deployer Key Vault Secrets Officer (RBAC), then
+#    └─ az deployment group create  → infra/main.bicep
 ```
 
-Detailed steps and verification commands: [research/azure-deploy.md](research/azure-deploy.md)
+The Bicep template ([infra/main.bicep](../infra/main.bicep)) provisions the UAMI, ACR,
+Azure OpenAI (+ `gpt-4o` deployment), Key Vault, Log Analytics, the Container Apps
+environment, and the Container App. Step-by-step guide: [deploy-azure.md](deploy-azure.md).
 
-### 2.4 Persistence & Security
+### 2.4 Security Posture
 
-- **Data:** a single SQLite file is mounted on an **Azure Files volume**, so ideas,
-  research, and suggestions survive container restarts. With a single user, the replica
-  count is pinned to 1.
-- **Secrets:** the Azure OpenAI endpoint, key, and deployment name are injected
-  **only through environment variables** ([.env.sample](../.env.sample)). No plaintext
-  keys live in the code or repository.
+- **No standing secrets in the app:** `aoai-api-key`, `app-passphrase`, and
+  `session-secret` live in **Key Vault**; the Container App reads them through a
+  **User-Assigned Managed Identity** (`keyVaultUrl` reference), not plaintext env values.
+- **Keyless image pull:** ACR `adminUserEnabled` is off; the same UAMI pulls images via
+  the **AcrPull** role.
+- **Azure OpenAI as IaC:** the account and `gpt-4o` deployment are created by Bicep, and
+  the API key flows from `listKeys()` straight into Key Vault — the deployer never handles it.
+- **App-level guards:** single-user passphrase auth, signed session cookies, and an
+  explicit prompt-injection guard ([app/prompt_guard.py](../backend/app/prompt_guard.py))
+  sanitize every model-bound input.
+- **Data:** a single SQLite file lives on the container filesystem with `minReplicas`
+  pinned to 1; durable cross-restart storage is a tracked follow-up, not yet wired.
 
 ---
 

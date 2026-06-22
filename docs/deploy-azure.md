@@ -13,14 +13,10 @@ Azure에서는 **Container Apps + ACR + Key Vault + User-Assigned Managed Identi
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) (`az`)
 - [Docker](https://docs.docker.com/get-docker/)
 - [uv](https://docs.astral.sh/uv/) (백엔드 실행/테스트), [Node.js 20+](https://nodejs.org/) (프론트 빌드)
-- **기존 Azure OpenAI 리소스** — `gpt-4o` 배포가 있어야 한다. 모델 배포명·API 버전 등
-  실제 운영 값은 [scripts/deploy-aca.sh](../scripts/deploy-aca.sh)와 [infra/main.bicepparam](../infra/main.bicepparam)의
-  기본값을 따른다.
-
-  > **NOTE**: Azure OpenAI 리소스 자체는 아직 IaC에 포함돼 있지 않다(백로그 2.8).
-  > 배포 스크립트는 리소스 그룹 `rg-lipcoding`의 계정 `aoai-lipcoding-tae0yp`에서
-  > 엔드포인트를 조회한다. 다른 리소스를 쓰려면 [scripts/deploy-aca.sh](../scripts/deploy-aca.sh)의
-  > `AOAI_ENDPOINT` 조회 부분을 수정한다.
+- **Azure OpenAI** — `createAoai=true`(기본)이면 이 배포가 AOAI 계정과 `gpt-4o`
+  배포를 IaC 로 생성·관리하고, API 키는 `listKeys()`로 Key Vault 에 자동 주입한다.
+  기존 계정을 그대로 쓰려면 [infra/main.bicepparam](../infra/main.bicepparam)에서
+  `createAoai=false`로 두고 `aoaiAccountName`을 기존 계정명으로 맞춘다(동명 계정은 멱등 흡수).
 
 ## 리포지토리 루트 잡기
 
@@ -121,7 +117,8 @@ Azure 배포에서는 셸 환경변수로 주입한다(아래 각 절 참고).
 ## Azure에 배포
 
 [scripts/deploy-aca.sh](../scripts/deploy-aca.sh) 한 번으로 리소스 공급자 등록 → 리소스 그룹/ACR
-생성 → 이미지 빌드·푸시 → Key Vault·Managed Identity 포함 Bicep 배포 → 헬스체크까지 수행한다.
+생성 → 이미지 빌드·푸시 → Azure OpenAI·Key Vault·Managed Identity 포함 Bicep 배포 →
+헬스체크까지 수행한다.
 
 1. Azure에 로그인하고 구독을 선택한다.
 
@@ -135,13 +132,17 @@ Azure 배포에서는 셸 환경변수로 주입한다(아래 각 절 참고).
 
     ```bash
     # bash/zsh
-    export AZURE_OPENAI_API_KEY={{AZURE_OPENAI_API_KEY}}
     export APP_PASSPHRASE={{LOGIN_PASSPHRASE}}
     # 선택: 안정적 세션 유지가 필요하면 직접 주입(미지정 시 자동 생성)
     # export SESSION_SECRET=$(openssl rand -base64 32)
     # 선택: 모델 배포명이 gpt-4o가 아니면 지정
     # export AZURE_OPENAI_DEPLOYMENT={{DEPLOYMENT_NAME}}
     ```
+
+    > **NOTE**: Azure OpenAI API 키는 더 이상 수동으로 주입하지 않는다. bicep 이 AOAI
+    > 계정에서 `listKeys()`로 가져와 Key Vault 시크릿(`aoai-api-key`)에 채운다(2.8).
+    > 기존 AOAI 계정을 그대로 쓰려면 [infra/main.bicepparam](../infra/main.bicepparam)에서
+    > `createAoai=false` 로 두고 `aoaiAccountName`을 맞춘다.
 
     > **NOTE**: ACR 이름(`ACR_NAME`), 리소스 그룹(`RG`), 위치(`LOCATION`)도 환경변수로
     > 덮어쓸 수 있다. 미지정 시 각각 자동 생성/`rg-lipcoding`/`eastus2`를 쓴다.
@@ -175,5 +176,7 @@ Azure 배포에서는 셸 환경변수로 주입한다(아래 각 절 참고).
 az group delete -n {{RESOURCE_GROUP}} --yes --no-wait
 ```
 
-> **NOTE**: Key Vault는 소프트 삭제(7일)가 켜져 있다. 같은 이름으로 즉시 재생성하려면
-> `az keyvault purge -n {{KEY_VAULT_NAME}}`로 완전 삭제한다(배포 출력의 `keyVaultName` 참고).
+> **NOTE**: Key Vault 와 Azure OpenAI 계정은 소프트 삭제가 켜져 있다. 같은 이름으로 즉시
+> 재생성하려면 `az keyvault purge -n {{KEY_VAULT_NAME}}` 및 `az cognitiveservices account
+> purge -g {{RESOURCE_GROUP}} -n {{AOAI_ACCOUNT_NAME}} -l {{LOCATION}}`로 완전 삭제한다
+> (배포 출력의 `keyVaultName`·`aoaiAccountName` 참고).
