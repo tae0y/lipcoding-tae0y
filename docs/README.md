@@ -15,6 +15,7 @@ For the product overview see the root [README](../README.md); for technical dept
 | Document | Why it exists |
 |------|------|
 | [architecture.md](architecture.md) | Explains how the Copilot SDK is used and how the app is deployed on Azure — the technical depth a reviewer would want after the README. |
+| [deploy-azure.md](deploy-azure.md) | Step-by-step guide to run and deploy the app (local → local container → Azure Container Apps) so reviewers can test what has been built. |
 | [FEEDBACK.md](FEEDBACK.md) | The competition judging feedback, kept as the basis for re-implementation priorities. |
 | [RECALL.md](RECALL.md) | The personal retrospective after the competition. |
 
