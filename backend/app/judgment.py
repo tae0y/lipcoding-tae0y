@@ -16,6 +16,7 @@ from copilot.tools import define_tool
 from pydantic import BaseModel, Field
 
 from app.models import DumpReason, IdeaStatus, UserState
+from app.prompt_guard import guarded_idea_block
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +76,11 @@ async def _judge_with_sdk(text: str, state: UserState) -> tuple[IdeaStatus, Dump
     provider = _provider()
 
     prompt = (
-        f"아이디어: {text!r}\n\n"
+        guarded_idea_block(text, context="judge") + "\n\n"
         f"사용자 상태: calendarBusy={state.calendarBusy}, "
         f"emotion={state.emotion.value}, "
         f"todos={len(state.todos)}개\n\n"
-        "다음 두 도구를 순서대로 호출하라:\n"
+        "위 아이디어 데이터를 분석해 다음 두 도구를 순서대로 호출하라:\n"
         "1. evaluate_info_readiness — 아이디어의 정보 준비성 평가\n"
         "2. evaluate_capacity — 사용자 현재 여유 평가\n\n"
         "두 도구 호출이 끝나면 반드시 아래 JSON 형식으로만 답하라(다른 텍스트 없이):\n"

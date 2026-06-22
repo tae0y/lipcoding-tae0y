@@ -16,8 +16,9 @@
 | 2.1 인증 — 패스프레이즈 + 서명 세션 쿠키 | ✅ 완료 | `4560185` |
 | 3.1·3.2 UI 시안 — 디자인 DNA + ASCII 개편안 | ✅ 완료 | `3a0bf19` |
 | 2.2 소프트 삭제 + undo | ✅ 완료 | `84faad1`, `0198bad` |
-| 2.3 비밀값 Key Vault화 (UAMI + KV + ACR MI 풀) | ✅ 완료 | (이번 세션) |
-| **다음** | 트랙 C: 3.3 디자인 결정 합의·3.4 토큰 통일 · 트랙 D: 2.4 프롬프트 인젝션 방어 | — |
+| 2.3 비밀값 Key Vault화 (UAMI + KV + ACR MI 풀) | ✅ 완료 | `1db94be` |
+| 2.4 프롬프트 인젝션 방어 명시화 (입력 정제 + 탐지 + 신뢰경계) | ✅ 완료 | (이번 세션) |
+| **다음** | 트랙 C: 3.3 디자인 결정 합의·3.4 토큰 통일 · 트랙 E: 2.5~2.7 Copilot SDK 완성도 | — |
 
 > 현재 `main`은 `origin/main`보다 앞서 있음(미푸시). 테스트 실행: `cd backend && uv run python -m pytest -q`
 > (PATH에 bare `python`/`pip` 없음 — 반드시 `uv run`). 인증 구현 상세는 repo memory
@@ -61,7 +62,12 @@
   (`aoai-api-key`/`app-passphrase`/`session-secret`) 평문 주입 → Key Vault 보관·UAMI 참조
   (`keyVaultUrl`). ACR `adminUserEnabled:false` + UAMI `AcrPull` 로 MI 풀(admin 비밀 제거).
   `deploy-aca.sh`: 배포자 RG 범위 `Key Vault Secrets Officer` 부여 + ARM 토큰 인증 활성화.
-- [ ] 2.4 **프롬프트 인젝션 방어 명시화** — 도구 스키마 의존 → 입력 검증/가드 명시
+- [x] 2.4 **프롬프트 인젝션 방어 명시화** — 도구 스키마 의존 → 명시적 가드 모듈
+  (`app/prompt_guard.py`). 입력 정제(NFKC·제어문자 제거·델리미터 탈출 무력화·길이 상한),
+  인젝션 탐지(한/영 override·role·reveal 패턴 로깅), 신뢰경계 델리미터+가드 프리앰블로
+  "데이터일 뿐 지시 아님" 명시. `judgment.py`·`research.py`의 모든 LLM 프롬프트 경로
+  (SDK 판정·SDK 사전조사 동기/스트림·Azure 직접 폴백)에 적용. 저장 원문은 무변경,
+  모델 사본만 정제. 테스트 14건 추가(`tests/test_prompt_guard.py`, 52 통과).
 
 ### P1 — Copilot SDK / 기능 완성도 (각 4점)
 - [ ] 2.5 **도구가 실제 외부 검색 수행** — 모델 출력 구조화 채널 → 진짜 멀티턴 에이전트 루프 (1.2와 연결)
