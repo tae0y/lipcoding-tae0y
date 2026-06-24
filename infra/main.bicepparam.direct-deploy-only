@@ -1,0 +1,16 @@
+using './main.bicep'
+
+// ── Direct deployment parameters (for az deployment sub create, not azd) ──────
+// For azd: use main.parameters.json + `azd env set` instead.
+// ─────────────────────────────────────────────────────────────────────────────
+
+param environmentName = 'lipcoding'
+param location = 'eastus2'
+
+// Azure OpenAI settings (override if using an existing account)
+param createAoai      = true
+param aoaiAccountName = 'aoai-lipcoding-tae0yp'
+
+// Secrets — supply via environment variables (never commit values)
+param appPassphrase = readEnvironmentVariable('APP_PASSPHRASE')
+param sessionSecret = readEnvironmentVariable('SESSION_SECRET')

@@ -1,0 +1,11 @@
+name: lipcoding
+metadata:
+  template: azd-init
+
+services:
+  api:
+    project: .
+    language: python
+    host: containerapp
+    docker:
+      path: ./Dockerfile
