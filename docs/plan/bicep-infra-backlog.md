@@ -1,24 +1,25 @@
-# Bicep 인프라 개선 백로그
+# Bicep Infrastructure Improvement Backlog
 
-> 작성: 2026-06-28  
-> 참고: [Azure Quickstart Best Practices](https://github.com/Azure/azure-quickstart-templates/blob/master/1-CONTRIBUTION-GUIDE/best-practices.md), [todo-python-mongo-aca](https://github.com/Azure-Samples/todo-python-mongo-aca), [openai-chat-app-quickstart](https://github.com/Azure-Samples/openai-chat-app-quickstart)
+> Created: 2026-06-28
+> References: [Azure Quickstart Best Practices](https://github.com/Azure/azure-quickstart-templates/blob/master/1-CONTRIBUTION-GUIDE/best-practices.md), [todo-python-mongo-aca](https://github.com/Azure-Samples/todo-python-mongo-aca), [openai-chat-app-quickstart](https://github.com/Azure-Samples/openai-chat-app-quickstart)
 
-현재 `infra/` 코드를 GitHub Azure Samples의 표준 패턴과 비교한 결과. 보안·유지보수·관찰가능성 순으로 우선순위를 부여.
+Results of comparing the current `infra/` code against standard patterns from GitHub Azure Samples.
+Prioritized in order of: security → observability → maintainability.
 
 ---
 
-## P0 — 보안
+## P0 — Security
 
-### B-01: Azure OpenAI Keyless 인증 전환 (`disableLocalAuth: true`)
+### B-01: Azure OpenAI Keyless Authentication (`disableLocalAuth: true`)
 
-**현재**: `listKeys()`로 API 키를 뽑아 Key Vault에 저장 → Container App이 KV 참조로 API 키 사용.  
-**모범 사례**: `disableLocalAuth: true` 설정 + Container App UAMI에 `Cognitive Services OpenAI User` 역할 부여 → API 키 자체를 없앰.
+**Current**: API key extracted via `listKeys()`, stored in Key Vault → Container App reads it via KV reference.
+**Best practice**: Set `disableLocalAuth: true` + grant Container App UAMI the `Cognitive Services OpenAI User` role → eliminate the API key entirely.
 
 ```bicep
 // resources.bicep
 resource aoaiAccount ... = {
   properties: {
-    disableLocalAuth: true   // ← 추가
+    disableLocalAuth: true   // <- add this
     ...
   }
 }
@@ -36,34 +37,34 @@ resource openAiRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-0
 }
 ```
 
-앱 측: `AZURE_OPENAI_API_KEY` 환경변수 제거, SDK를 `DefaultAzureCredential`로 교체.
+App side: remove `AZURE_OPENAI_API_KEY` env var, replace SDK with `DefaultAzureCredential`.
 
-**효과**: KV에 AOAI 키 자체가 존재하지 않음 → 키 유출 표면 제거.
+**Effect**: AOAI key does not exist in KV at all → key leakage surface eliminated.
 
 ---
 
-### B-02: `dependsOn` 명시적 선언 제거
+### B-02: Remove Explicit `dependsOn` Declarations
 
-**현재**: `containerApp` 리소스에 `dependsOn: [acrPullAssignment, kvSecretsUserAssignment, aoaiSecret, ...]` 명시.  
-**모범 사례**: Bicep은 symbolic reference로 암묵적 의존성을 자동 추적하므로, 같은 템플릿 내 리소스에 대해 `dependsOn`은 대부분 불필요.  
-예외: 역할 할당처럼 **참조가 없지만 순서가 필요한** 케이스는 `dependsOn` 유지.
+**Current**: `containerApp` resource has `dependsOn: [acrPullAssignment, kvSecretsUserAssignment, aoaiSecret, ...]` explicitly.
+**Best practice**: Bicep tracks implicit dependencies via symbolic references automatically; `dependsOn` is mostly unnecessary for resources in the same template.
+Exception: role assignments where **order is required but there is no reference** — keep `dependsOn` for those.
 
 ```bicep
-// 제거 대상 — aoaiSecret, passphraseSecret, sessionSecretKv는
-// secretRef 경유라 직접 참조가 없지만, KV 시크릿이 존재해야 배포가 성공함
-// → 이 케이스는 dependsOn 유지가 올바름 (아래 B-02는 코드 리뷰 시 재확인)
+// Candidates for removal — aoaiSecret, passphraseSecret, sessionSecretKv have no direct
+// reference (via secretRef), but the KV secret must exist for deployment to succeed
+// → this case is correct to keep dependsOn (review B-02 during code review)
 ```
 
-실제 제거 가능 여부는 배포 테스트 후 확인 필요. 현재 코드는 안전을 위해 유지도 허용.
+Whether actual removal is safe must be confirmed after a deployment test. The current code is acceptable to keep for safety.
 
 ---
 
-## P1 — 관찰가능성
+## P1 — Observability
 
-### B-03: Application Insights 추가
+### B-03: Add Application Insights
 
-**현재**: Log Analytics Workspace만 존재. 분산 추적, 실시간 스트림, 실패 분석 불가.  
-**모범 사례**: Azure Samples 표준 `monitoring` 모듈 = Log Analytics + Application Insights 쌍.
+**Current**: Only Log Analytics Workspace exists. No distributed tracing, real-time stream, or failure analysis.
+**Best practice**: Azure Samples standard `monitoring` module = Log Analytics + Application Insights pair.
 
 ```bicep
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
@@ -77,15 +78,15 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 ```
 
-Container App 환경변수에 `APPLICATIONINSIGHTS_CONNECTION_STRING` 추가.  
-FastAPI 앱은 `opencensus-ext-azure` 또는 `azure-monitor-opentelemetry` 연동.
+Add `APPLICATIONINSIGHTS_CONNECTION_STRING` to Container App environment variables.
+FastAPI app integrates via `opencensus-ext-azure` or `azure-monitor-opentelemetry`.
 
 ---
 
-### B-04: Container App에 Readiness / Startup Probe 추가
+### B-04: Add Readiness / Startup Probes to Container App
 
-**현재**: `Liveness` probe만 정의. 콜드스타트 시 트래픽이 들어와 502 발생 가능.  
-**모범 사례**: Startup → Readiness → Liveness 세 가지 probe 분리.
+**Current**: Only `Liveness` probe defined. Traffic hitting the app during cold start can cause 502s.
+**Best practice**: Separate Startup → Readiness → Liveness into three distinct probes.
 
 ```bicep
 probes: [
@@ -94,7 +95,7 @@ probes: [
     httpGet: { path: '/health', port: 8000 }
     initialDelaySeconds: 5
     periodSeconds: 5
-    failureThreshold: 12   // 최대 60초 스타트업 허용
+    failureThreshold: 12   // allow up to 60s startup
   }
   {
     type: 'Readiness'
@@ -112,44 +113,45 @@ probes: [
 
 ---
 
-## P2 — 유지보수성
+## P2 — Maintainability
 
-### B-05: `abbreviations.json` 도입 및 리소스 네이밍 표준화
+### B-05: Introduce `abbreviations.json` and Standardize Resource Naming
 
-**현재**: `kv${...}`, `acr${...}`, `aoai${...}` 등 임의 접두어를 main/resources 양쪽에 분산 하드코딩.  
-**모범 사례**: Azure 공식 약어 파일(`abbreviations.json`)을 `infra/` 에 두고 `loadJsonContent`로 참조.
+**Current**: Arbitrary prefixes like `kv${...}`, `acr${...}`, `aoai${...}` hardcoded in both main and resources.
+**Best practice**: Place the official Azure abbreviations file (`abbreviations.json`) in `infra/` and reference via `loadJsonContent`.
 
 ```bicep
 // main.bicep
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
-var acrName     = take('${abbrs.containerRegistryRegistries}${resourceToken}', 50)
+var acrName      = take('${abbrs.containerRegistryRegistries}${resourceToken}', 50)
 var keyVaultName = take('${abbrs.keyVaultVaults}${resourceToken}', 24)
 ```
 
-공식 abbreviations.json: [Azure Samples todo-python-mongo-aca](https://github.com/Azure-Samples/todo-python-mongo-aca/blob/main/infra/abbreviations.json)
+Official abbreviations.json: [Azure Samples todo-python-mongo-aca](https://github.com/Azure-Samples/todo-python-mongo-aca/blob/main/infra/abbreviations.json)
 
-**효과**: 리소스 이름이 Azure CAF 네이밍 규칙 자동 준수, main↔modules 간 중복 선언 제거.
-
----
-
-### B-06: 파라미터 중복 선언 제거 (main → resources pass-through)
-
-**현재**: `aoaiModelName`, `aoaiModelVersion`, `aoaiDeployment`, `aoaiCapacity`, `aoaiApiVersion`이 `main.bicep`과 `resources.bicep` 양쪽에 동일하게 선언됨.  
-**모범 사례**: main에서 선언, resources에는 `param`으로 받아서 사용. 중복 `@description`과 constraint 제거.
-
-현재 resources.bicep의 파라미터 중 main.bicep에서 그대로 pass-through되는 것들 → resources.bicep에서는 `@description` 생략 또는 최소화 가능.
+**Effect**: Resource names automatically comply with Azure CAF naming conventions; eliminates duplicate declarations between main↔modules.
 
 ---
 
-### B-07: AVM(Azure Verified Modules) 점진적 도입 검토
+### B-06: Remove Duplicate Parameter Declarations (main → resources pass-through)
 
-**현재**: 모든 리소스를 직접 정의.  
-**모범 사례**: Azure Samples 최신 템플릿은 공개 Bicep 레지스트리의 검증된 모듈을 사용.
+**Current**: `aoaiModelName`, `aoaiModelVersion`, `aoaiDeployment`, `aoaiCapacity`, `aoaiApiVersion`
+are declared identically in both `main.bicep` and `resources.bicep`.
+**Best practice**: Declare in main, receive in resources as `param`. Remove duplicate `@description` and constraints.
+
+Parameters in resources.bicep that are pass-throughs from main.bicep → can omit or minimize `@description` in resources.bicep.
+
+---
+
+### B-07: Evaluate Gradual AVM (Azure Verified Modules) Adoption
+
+**Current**: All resources defined inline.
+**Best practice**: Latest Azure Samples templates use verified modules from the public Bicep registry.
 
 ```bicep
-// 예시: Key Vault를 AVM으로 교체
+// Example: replace Key Vault with AVM
 module keyVault 'br/public:avm/res/key-vault/vault:0.11.0' = {
   name: 'keyvault'
   scope: rg
@@ -162,15 +164,15 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.11.0' = {
 }
 ```
 
-- 장점: API 버전 자동 관리, WAF 정렬 파라미터 내장, 린트 통과.
-- 단점: 레지스트리 의존성 추가, 파라미터 인터페이스 변경 필요.
-- 권장 순서: Log Analytics → Key Vault → Managed Identity (복잡도 낮은 것부터).
+- Pros: automatic API version management, WAF-aligned parameters built-in, passes lint.
+- Cons: adds registry dependency, requires parameter interface changes.
+- Recommended order: Log Analytics → Key Vault → Managed Identity (start with lowest complexity).
 
 ---
 
-### B-08: 리소스 속성 정렬 순서 통일
+### B-08: Standardize Resource Property Ordering
 
-**모범 사례** (ARM best-practices.md 기준):
+**Best practice** (per ARM best-practices.md):
 
 ```bicep
 @description(...)
@@ -180,20 +182,20 @@ resource foo '...' = {
   sku: ...
   kind: ...
   identity: ...
-  tags: ...       // ← 현재 일부 리소스에서 앞에 위치
+  tags: ...       // <- currently placed first in some resources
   properties: ...
 }
 ```
 
-현재 `logAnalytics`, `caEnv`에서 `tags` 없음(main의 tags가 pass-through되지 않음) → `tags: tags` 추가도 함께 권장.
+`logAnalytics` and `caEnv` currently have no `tags` (main's tags are not passed through) → also recommended to add `tags: tags`.
 
 ---
 
-## P3 — 확장성 (필요 시)
+## P3 — Scalability (as needed)
 
-### B-09: OpenAI 리소스 별도 리소스 그룹/구독 지원
+### B-09: Support OpenAI Resource in a Separate Resource Group / Subscription
 
-**모범 사례**: `openai-chat-app-quickstart`는 `openAiResourceGroupName` 파라미터로 AOAI를 별도 RG에 두고 `existing` 참조. 쿼터가 부족한 구독에서 기존 계정 공유 가능.
+**Best practice**: `openai-chat-app-quickstart` uses an `openAiResourceGroupName` parameter to place AOAI in a separate RG and reference it via `existing`. Enables sharing an existing account when quota is limited in a subscription.
 
 ```bicep
 param openAiResourceGroupName string = ''
@@ -202,39 +204,39 @@ resource openAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' exi
 }
 ```
 
-현재 `createAoai=false` 로직은 이미 partial 지원이나, 별도 RG 참조는 미지원.
+The current `createAoai=false` logic already provides partial support, but separate RG references are not supported.
 
 ---
 
-### B-10: Log Analytics sharedKey 방식 → workspace resource ID 방식 전환
+### B-10: Migrate Log Analytics from sharedKey to workspace Resource ID
 
-**현재**: `logAnalytics.listKeys().primarySharedKey`를 Container Apps Environment에 직접 주입.  
-**추세**: Container Apps Environment는 `workspaceResourceId` 단독 지정으로 shared key 불필요한 방향으로 API가 발전 중.
+**Current**: `logAnalytics.listKeys().primarySharedKey` is injected directly into the Container Apps Environment.
+**Trend**: The Container Apps Environment API is evolving toward `workspaceResourceId` alone, eliminating the need for a shared key.
 
 ```bicep
-// 현재
+// Current
 logAnalyticsConfiguration: {
   customerId: logAnalytics.properties.customerId
   sharedKey: logAnalytics.listKeys().primarySharedKey
 }
 
-// 대안 (API 버전 확인 후 적용)
-// daprAIConnectionString or workspaceId 단독 참조로 이동 가능 여부 확인 필요
+// Alternative (verify API version before applying)
+// Check if daprAIConnectionString or workspaceId alone can replace the above
 ```
 
 ---
 
-## 요약 우선순위 표
+## Summary Priority Table
 
-| ID | 항목 | 우선순위 | 공수 | 효과 |
+| ID | Item | Priority | Effort | Effect |
 |---|---|---|---|---|
-| B-01 | AOAI Keyless 인증 (`disableLocalAuth`) | P0 | 중 | 키 유출 표면 제거 |
-| B-03 | Application Insights 추가 | P1 | 소 | 운영 가시성 확보 |
-| B-04 | Startup/Readiness Probe | P1 | 소 | 콜드스타트 502 방지 |
-| B-05 | abbreviations.json 네이밍 표준화 | P2 | 소 | CAF 준수, 중복 제거 |
-| B-06 | 파라미터 중복 제거 | P2 | 소 | 유지보수성 |
-| B-07 | AVM 도입 | P2 | 대 | 장기 유지보수성 |
-| B-08 | 리소스 속성 정렬 + tags 보완 | P2 | 소 | 일관성 |
-| B-09 | AOAI 별도 RG 지원 | P3 | 중 | 쿼터 공유 시나리오 |
-| B-10 | Log Analytics sharedKey 제거 | P3 | 소 | 비밀 표면 축소 |
-| B-02 | `dependsOn` 정리 | P0 | 소 | 코드 정확성 |
+| B-01 | AOAI Keyless auth (`disableLocalAuth`) | P0 | Medium | Eliminates key leakage surface |
+| B-03 | Add Application Insights | P1 | Small | Operational visibility |
+| B-04 | Startup/Readiness Probe | P1 | Small | Prevents cold-start 502s |
+| B-05 | abbreviations.json naming standard | P2 | Small | CAF compliance, removes duplication |
+| B-06 | Remove duplicate parameters | P2 | Small | Maintainability |
+| B-07 | AVM adoption | P2 | Large | Long-term maintainability |
+| B-08 | Resource property ordering + tags | P2 | Small | Consistency |
+| B-09 | AOAI separate RG support | P3 | Medium | Quota sharing scenario |
+| B-10 | Remove Log Analytics sharedKey | P3 | Small | Reduces secret surface |
+| B-02 | Clean up `dependsOn` | P0 | Small | Code correctness |

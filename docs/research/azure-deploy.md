@@ -1,101 +1,101 @@
-# Azure 배포 경로 조사
+# Azure Deployment Path Research
 
-심사 18%(Azure AI & Cloud). 15:40 배포 데드라인 보험.
+Scoring weight 18% (Azure AI & Cloud). Deployment deadline insurance at 15:40.
 
-출처: [.github/skills/azure-static-web-apps/SKILL.md](../../.github/skills/azure-static-web-apps/SKILL.md),
+Sources: [.github/skills/azure-static-web-apps/SKILL.md](../../.github/skills/azure-static-web-apps/SKILL.md),
 [.github/skills/azure-deployment-preflight/SKILL.md](../../.github/skills/azure-deployment-preflight/SKILL.md).
 
 ---
 
-## 진행 현황 (2026-06-20)
+## Progress (2026-06-20)
 
-### Container Apps 경로 — 스켈레톤 완성, 이미지 빌드 완료
+### Container Apps Path — Skeleton Complete, Image Built
 
-App Service(`lipcoding-tae0yp`)가 응답 불가 상태여서 Container Apps로 배포 경로 전환.
+Switched deployment path to Container Apps because App Service (`lipcoding-tae0yp`) was unresponsive.
 
-| 단계 | 상태 | 비고 |
+| Step | Status | Notes |
 |---|---|---|
-| `Microsoft.App` 공급자 등록 | ✅ 완료 | `Microsoft.OperationalInsights`, `Microsoft.ContainerRegistry` 포함 |
-| ACR `lipcodingabk8` 생성 | ✅ 완료 | eastus2, Basic SKU |
-| Docker 이미지 빌드 & 푸시 | ✅ 완료 | ACR Tasks (ch2), `lipcoding-api:latest` |
-| Bicep 배포 (`infra/main.bicep`) | ⏳ 다음 단계 | `bash scripts/deploy-aca.sh` 실행 필요 |
+| Register `Microsoft.App` provider | ✅ Done | Including `Microsoft.OperationalInsights`, `Microsoft.ContainerRegistry` |
+| Create ACR `lipcodingabk8` | ✅ Done | eastus2, Basic SKU |
+| Docker image build & push | ✅ Done | ACR Tasks (ch2), `lipcoding-api:latest` |
+| Bicep deployment (`infra/main.bicep`) | ⏳ Next | Run `bash scripts/deploy-aca.sh` |
 
-**재배포 명령:**
+**Redeploy command:**
 ```bash
-export AZURE_OPENAI_API_KEY="..."   # 또는 source backend/.env
+export AZURE_OPENAI_API_KEY="..."   # or source backend/.env
 ACR_NAME=lipcodingabk8 bash scripts/deploy-aca.sh
 ```
 
-### 생성된 인프라 파일
+### Generated Infrastructure Files
 
-| 파일 | 역할 |
+| File | Role |
 |---|---|
-| `Dockerfile` | 멀티스테이지: node→Vite빌드 + python:3.12-slim |
+| `Dockerfile` | Multi-stage: node→Vite build + python:3.12-slim |
 | `infra/main.bicep` | ACR + LogAnalytics + CA Env + Container App |
-| `infra/main.bicepparam` | 파라미터 (API 키는 `readEnvironmentVariable` |
-| `scripts/deploy-aca.sh` | 공급자 등록→ACR빌드→Bicep 배포→헬스체크 자동화 |
+| `infra/main.bicepparam` | Parameters (API key via `readEnvironmentVariable`) |
+| `scripts/deploy-aca.sh` | Provider registration→ACR build→Bicep deploy→health check automation |
 
 ---
 
-## 결론: App Service 단일 앱 (초기 계획)
+## Conclusion: App Service Single App (Initial Plan)
 
-**FastAPI 백엔드가 빌드된 SPA 정적 파일을 함께 서빙**하고, `az webapp up` 으로 하나의
-App Service에 배포한다. 네이티브 Python, Docker 없음, Functions 래핑 없음.
-**리소스 1개, 배포 1번, CORS 0.**
+**FastAPI backend serves the built SPA static files from the same origin**, deployed to a single
+App Service with `az webapp up`. Native Python, no Docker, no Functions wrapping.
+**1 resource, 1 deployment, CORS 0.**
 
-### 호스팅 옵션 비교
+### Hosting Options Comparison
 
-| 옵션 | FastAPI 적합도 | 셋업 비용 | 해커톤 판정 |
+| Option | FastAPI fit | Setup cost | Hackathon verdict |
 |---|---|---|---|
-| Static Web Apps + managed Functions | ⚠️ 낮음. 관리형 API는 Azure Functions 모델이라 FastAPI 래핑 필요 | SPA는 낮음, FastAPI는 **높음** | ❌ FastAPI엔 부적합 |
-| Container Apps | ✅ 무엇이든 실행 | **높음** — Dockerfile + ACR 빌드 + ingress | ❌ 첫 배포 너무 느림 |
-| **App Service (Python)** | ✅ **네이티브**. Oryx가 `requirements.txt` 빌드, uvicorn 워커 | **낮음** — `az webapp up` 한 방 | ✅ **선택** |
+| Static Web Apps + managed Functions | ⚠️ Low. Managed API is Azure Functions model, requires FastAPI wrapping | SPA low, FastAPI **high** | ❌ Not suited for FastAPI |
+| Container Apps | ✅ Runs anything | **High** — Dockerfile + ACR build + ingress | ❌ Too slow for first deployment |
+| **App Service (Python)** | ✅ **Native**. Oryx builds `requirements.txt`, uvicorn workers | **Low** — `az webapp up` one command | ✅ **Selected** |
 
-같은 오리진에서 SPA를 서빙하면 CORS가 통째로 사라진다. 프론트를 꼭 분리해야 하면
-나중에 SWA를 붙이되, 처음부터 분리하지 말 것.
+Serving the SPA from the same origin eliminates CORS entirely. If frontend must be separated later,
+add SWA then — do not separate from the start.
 
-## CLI 단계 (생성 → 배포 → 검증)
+## CLI Steps (Create → Deploy → Verify)
 
 ```bash
 RG=rg-lipcoding
 LOC=eastus2
-APP=lipcoding-$RANDOM            # 전역 고유 이름
+APP=lipcoding-$RANDOM            # globally unique name
 PLAN=plan-lipcoding
 
 az login
 az account set --subscription "<SUBSCRIPTION_ID_OR_NAME>"
 
-# 1) 리소스 그룹
+# 1) Resource group
 az group create -n $RG -l $LOC
 
-# 2) SPA 먼저 빌드 → FastAPI가 StaticFiles로 서빙할 위치에 복사
+# 2) Build SPA first → copy to where FastAPI serves StaticFiles
 #    (frontend) npm ci && npm run build
 
-# 3) 생성 + 배포 한 번에 (requirements.txt 있는 backend 폴더에서)
+# 3) Create + deploy in one step (from backend folder with requirements.txt)
 az webapp up \
   --name $APP --resource-group $RG --location $LOC \
-  --runtime "PYTHON:3.12" --sku B1            # B1: Always On 지원(콜드스타트 방지)
+  --runtime "PYTHON:3.12" --sku B1            # B1: supports Always On (prevents cold start)
 
-# 4) uvicorn 워커로 기동 강제
+# 4) Force uvicorn worker startup
 az webapp config set -g $RG -n $APP \
   --startup-file "gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 main:app"
-#    ^ module:app 조정 (예: app.main:app)
+#    ^ adjust module:app (e.g. app.main:app)
 
-# 5) 워밍 유지
+# 5) Keep warm
 az webapp config set -g $RG -n $APP --always-on true
 
-# 6) 공개 URL 검증
+# 6) Verify public URL
 az webapp show -g $RG -n $APP --query defaultHostName -o tsv
 curl -i https://$APP.azurewebsites.net/health
 ```
 
-> 15:40 재배포: 같은 폴더에서 `az webapp up` 재실행 → 기존 앱 재사용, 코드만 푸시.
+> Redeploy at 15:40: re-run `az webapp up` from the same folder → reuses existing app, pushes only code.
 
-## Azure OpenAI 설정 + secret
+## Azure OpenAI Setup + Secrets
 
 ```bash
 AOAI=aoai-lipcoding-$RANDOM
-AOAI_LOC=eastus2                 # 모델 가용 리전 확인
+AOAI_LOC=eastus2                 # check model availability by region
 DEPLOY=gpt-4o-mini
 
 az cognitiveservices account create \
@@ -111,16 +111,16 @@ AOAI_ENDPOINT=$(az cognitiveservices account show -n $AOAI -g $RG --query proper
 AOAI_KEY=$(az cognitiveservices account keys list -n $AOAI -g $RG --query key1 -o tsv)
 ```
 
-앱이 필요로 하는 환경변수:
+Environment variables the app needs:
 
-| Var | 값 |
+| Var | Value |
 |---|---|
 | `AZURE_OPENAI_ENDPOINT` | `$AOAI_ENDPOINT` |
 | `AZURE_OPENAI_API_KEY` | `$AOAI_KEY` |
-| `AZURE_OPENAI_DEPLOYMENT` | `gpt-4o-mini` (**배포 이름**, 모델 이름 아님) |
-| `AZURE_OPENAI_API_VERSION` | `2024-10-21` (현 GA) |
+| `AZURE_OPENAI_DEPLOYMENT` | `gpt-4o-mini` (**deployment name**, not model name) |
+| `AZURE_OPENAI_API_VERSION` | `2024-10-21` (current GA) |
 
-App Settings로 주입(저장 시 암호화, env로 노출):
+Inject via App Settings (encrypted at rest, exposed as env):
 
 ```bash
 az webapp config appsettings set -g $RG -n $APP --settings \
@@ -130,10 +130,10 @@ az webapp config appsettings set -g $RG -n $APP --settings \
   AZURE_OPENAI_API_VERSION="2024-10-21"
 ```
 
-> 리포/프론트에 키 하드코딩 금지. 서버에서 `os.environ` 으로만 읽기.
-> 시간 남으면: Managed Identity + `Cognitive Services OpenAI User` 롤 + `DefaultAzureCredential` 로 키 제거.
+> Never hardcode keys in repo or frontend. Read via `os.environ` on the server only.
+> If time allows: Managed Identity + `Cognitive Services OpenAI User` role + `DefaultAzureCredential` to remove the key.
 
-## 스모크 테스트 (기능 전에 "배포된다" 증명)
+## Smoke Test (prove "it deploys" before any features)
 
 ```python
 @app.get("/health")
@@ -152,34 +152,34 @@ def health_ai():
 ```
 
 ```bash
-curl -fsS https://$APP.azurewebsites.net/            # SPA index 로드
+curl -fsS https://$APP.azurewebsites.net/            # SPA index loads
 curl -fsS https://$APP.azurewebsites.net/health      # {"ok":true}
 curl -fsS https://$APP.azurewebsites.net/health/ai   # {"ok":true,"reply":...}
-# 실패 시: az webapp log tail -g $RG -n $APP
+# On failure: az webapp log tail -g $RG -n $APP
 ```
 
-세 개 모두 200 = 스모크 게이트 통과. 기능 작성 전 통과해 둘 것.
+All three returning 200 = smoke gate passed. Pass this before writing any features.
 
-## 함정
+## Pitfalls
 
-- **콜드스타트** → B1 + `--always-on true`. Free/Shared는 Always On 불가, 잠듦.
-- **CORS** → FastAPI가 SPA 서빙하면 없음. 나중에 SWA로 분리하면 `CORSMiddleware` 추가.
-- **리전/모델 가용성** → `gpt-4o-mini` GlobalStandard는 모든 리전에 없음. `eastus2`/`swedencentral` 안전.
-- **배포 이름 vs 모델 이름** → SDK `model=` 은 **배포 이름**. 불일치 = `DeploymentNotFound`.
-- **API 버전** → GA 값(`2024-10-21`). 잘못된/프리뷰 버전은 흔한 무음 404.
-- **쿼터** → 신규 구독은 AOAI 액세스/쿼터 승인 필요할 수 있음. **가장 먼저 확인** — 유일하게 몇 시간 막을 수 있는 단계.
-- **시작 명령** → uvicorn-worker 시작 파일 없으면 Oryx가 WSGI로 가정, FastAPI 부팅 실패.
-- **SPA 라우팅 404** → `StaticFiles(..., html=True)` + 클라이언트 라우트용 catch-all로 `index.html` 반환.
+- **Cold start** → B1 + `--always-on true`. Free/Shared tiers don't support Always On and go idle.
+- **CORS** → None when FastAPI serves the SPA. If later separated to SWA, add `CORSMiddleware`.
+- **Region/model availability** → `gpt-4o-mini` GlobalStandard is not available in all regions. `eastus2`/`swedencentral` are safe.
+- **Deployment name vs model name** → SDK `model=` is the **deployment name**. Mismatch = `DeploymentNotFound`.
+- **API version** → Use GA value (`2024-10-21`). Wrong/preview versions silently return 404.
+- **Quota** → New subscriptions may need AOAI access/quota approval. **Check first** — the one step that can block for hours.
+- **Startup command** → Without a uvicorn-worker startup file, Oryx assumes WSGI, FastAPI fails to boot.
+- **SPA routing 404** → `StaticFiles(..., html=True)` + catch-all returning `index.html` for client routes.
 
-## "배포 먼저" 체크리스트
+## "Deploy First" Checklist
 
-- [ ] `az login` + 구독 설정; **AOAI 액세스/쿼터 확인**
+- [ ] `az login` + set subscription; **check AOAI access/quota**
 - [ ] `az group create`
-- [ ] SPA 빌드 → FastAPI 서빙 위치에 배치
-- [ ] FastAPI에 `/health` 라우트
-- [ ] `az webapp up` (PYTHON:3.12, B1) 성공
-- [ ] uvicorn 시작 명령 + `--always-on`
-- [ ] AOAI 계정 + `gpt-4o-mini` 배포 생성
-- [ ] App Settings 4개 주입
-- [ ] `curl /`, `/health`, `/health/ai` 전부 200 → 스모크 게이트 통과
-- [ ] ~15:40 `az webapp up` 재실행으로 최종 배포
+- [ ] Build SPA → place in FastAPI serving location
+- [ ] Add `/health` route to FastAPI
+- [ ] `az webapp up` (PYTHON:3.12, B1) succeeds
+- [ ] uvicorn startup command + `--always-on`
+- [ ] Create AOAI account + `gpt-4o-mini` deployment
+- [ ] Inject 4 App Settings
+- [ ] `curl /`, `/health`, `/health/ai` all return 200 → smoke gate passed
+- [ ] ~15:40 re-run `az webapp up` for final deployment

@@ -1,18 +1,20 @@
-# GitHub Copilot 응답에 일본어·영어가 섞여 나오는 문제 (2026-06-20)
+# GitHub Copilot Output Mixed Japanese and English (2026-06-20)
 
-GitHub Copilot의 처리 결과가 한국어가 아니라 **일본어와 영어가 같이 섞여서** 나오는
-현상을 겪었고, 그 원인을 기록한다.
+GitHub Copilot responses came out as **a mix of Japanese and English** instead of Korean.
+This note records the cause.
 
-## 증상
+## Symptom
 
-- Copilot 응답/출력이 한국어로 요청했는데도 일본어와 영어가 뒤섞여 나옴.
+- Copilot responses returned Japanese and English mixed in, even when prompted in Korean.
 
-## 원인
+## Cause
 
-- MS(GitHub Copilot 백엔드) 네트워크가 **일본 VPN**을 타고 있어서 그렇다.
-  - 출구 IP가 일본으로 잡히면서 응답 언어가 일본어 쪽으로 기울고, 영어와 섞여 나온 것.
+- The MS (GitHub Copilot backend) network was routing through a **Japanese VPN**.
+  - The exit IP resolved to Japan, which skewed the response language toward Japanese,
+    producing a Japanese/English mix.
 
-## 메모
+## Note
 
-- 언어가 이상하게 섞여 나오면 모델 문제로 단정하지 말고 **네트워크 경로(VPN/리전)**를
-  먼저 의심할 것.
+- When output language looks wrong, do not immediately assume a model issue —
+  check the **network routing path** first. VPN/proxy exit node location can affect
+  the language model's locale behavior.

@@ -1,49 +1,49 @@
-# 음성 입력(STT) 옵션 조사
+# Voice Input (STT) Options Research
 
-단일 사용자 웹 앱. 한국어+영어 가능성. STT는 점수 핵심이 아니다.
+Single-user web app. Potential Korean + English. STT is not a core scoring item.
 
-## 옵션 비교
+## Options Comparison
 
 | | (a) Web Speech API | (b) Azure AI Speech (STT) |
 |---|---|---|
-| 실행 위치 | 브라우저 네이티브(`SpeechRecognition`) | Azure 클라우드(SDK/REST) |
-| 한국어 | Chrome `ko-KR` 양호(내부 Google 엔진) | 우수, 노이즈/억양/문장부호 강함 |
-| EN+KO 혼용 | 세션당 한 언어(`lang`) | 언어 ID/로케일, 혼용에 유리 |
-| 통합 난이도 | JS ~10줄, 프론트만 | 중간: SDK/REST + 토큰·키 처리 |
-| 비용 | 무료 | 무료 ~5시간/월, 이후 ~$1/시간(S0) |
-| 지연 | 낮음(인터림 스트리밍) | 낮음, 단 네트워크+인증 왕복 |
-| 브라우저 | Chrome/Edge/Safari ✅, **Firefox ❌** | 모든 브라우저 |
-| secret | **없음** | 구독 + Speech 리소스 + **키+리전**(백엔드 프록시 필수, SPA 노출 금지) |
+| Execution | Browser native (`SpeechRecognition`) | Azure cloud (SDK/REST) |
+| Korean | Chrome `ko-KR` good (internal Google engine) | Excellent, strong on noise/accent/punctuation |
+| EN+KO mixed | One language per session (`lang`) | Language ID/locale, better for mixing |
+| Integration difficulty | ~10 JS lines, frontend only | Medium: SDK/REST + token/key handling |
+| Cost | Free | Free ~5hr/month, then ~$1/hr (S0) |
+| Latency | Low (interim streaming) | Low, but network + auth round-trip |
+| Browser | Chrome/Edge/Safari ✅, **Firefox ❌** | All browsers |
+| Secret | **None** | Subscription + Speech resource + **key+region** (backend proxy required, must not expose in SPA) |
 
-## 권장 통합 — Web Speech API
+## Recommended Integration — Web Speech API
 
-프론트만, 백엔드/secret 없음:
+Frontend only, no backend/secret:
 
 ```js
 const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
 const rec = new Rec();
-rec.lang = "ko-KR";          // 토글에 따라 "en-US"
+rec.lang = "ko-KR";          // toggle to "en-US" as needed
 rec.interimResults = true;
 rec.continuous = false;
 
 rec.onresult = (e) => {
   const text = Array.from(e.results).map(r => r[0].transcript).join("");
-  inputBox.value = text;     // 기존 텍스트 입력에 주입
+  inputBox.value = text;     // inject into existing text input
 };
 rec.onerror = (e) => console.warn("STT error:", e.error);
 micButton.onclick = () => rec.start();
 ```
 
-`Rec` 이 undefined면 마이크 버튼 숨김(Firefox 대응).
+If `Rec` is undefined, hide the mic button (Firefox fallback).
 
-## 판정: 기본 스킵
+## Verdict: Skip by Default
 
-- **점수 미반영.** 핵심은 Copilot SDK 깊이 + Azure 모델. STT는 루브릭에 기여 0.
-- **Azure Speech는 잘못된 Azure 지출.** 리소스+키 프록시만 늘고 "Azure 모델 사용"
-  점수(LLM 통합)와는 무관.
-- **4시간 + 비핵심 기능 = 컷.** 마이크 권한·브라우저 quirk·에러 상태가 시간만 먹음.
+- **Not in scoring.** Core is Copilot SDK depth + Azure model. STT contributes 0 to rubric.
+- **Azure Speech is misallocated Azure spend.** Only adds resource+key proxy overhead, unrelated to
+  "Azure model usage" score (LLM integration).
+- **4 hours + non-core feature = cut.** Mic permissions, browser quirks, and error states just eat time.
 
-**진짜 여유가 남으면**: 위 Web Speech API 스니펫만(~10분, 프론트만, secret 없음).
-**절대** 이 시간 압박에서 Azure Speech를 배선하지 말 것.
+**Only if time genuinely remains**: the Web Speech API snippet above (~10 min, frontend only, no secret).
+**Never** wire Azure Speech under this time pressure.
 
-결론: 기본 = 스킵. 스트레치 목표(엔드투엔드 + SDK/Azure 깊이 확보 후) = Web Speech API, 그 이상은 X.
+Verdict: default = skip. Stretch goal (after end-to-end + SDK/Azure depth secured) = Web Speech API, nothing more.

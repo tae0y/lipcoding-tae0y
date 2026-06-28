@@ -4,9 +4,7 @@ Everything about Working Memory Inbox — design, research, planning, and presen
 For the product overview see the root [README](../README.md); for technical depth see
 [architecture.md](architecture.md).
 
-> The internal working documents below are kept in **Korean** (they are the team's
-> working notes). This index exists so an English reader can understand **why each
-> document was created** and decide what to open — every description here is in English.
+> All documents in this project are written in **English** for open-source accessibility.
 
 ## Document Index
 

@@ -1,148 +1,149 @@
-# 앱 디자인/비주얼 제안
+# App Design / Visual Proposal
 
-> 방향 변경(2026-06-20): 기존의 웜 뉴트럴 커스텀 팔레트 + 작업기억 미터 같은
-> "공들인" 비주얼은 **시간 대비 무리**라 폐기. 대신 **빅테크 기본 스타일**
-> (shadcn/ui `neutral` 디폴트 = Vercel/v0/Linear 룩)로 간다. 커스텀 테마 0,
-> 컴포넌트는 그대로 갖다 쓰고 **기능에 시간을 쓴다.**
+> Direction change (2026-06-20): the "polished" visuals — custom warm-neutral palette + working
+> memory meter — are **too time-consuming** and scrapped. Instead, go with **big-tech default style**
+> (shadcn/ui `neutral` default = Vercel/v0/Linear look). Zero custom theming,
+> use components as-is, and **spend time on features**.
 
-단일 사용자, 3화면 고정. 컨셉(작업기억 부하 감소)은 **레이아웃의 절제**로만 표현하고,
-색·애니메이션으로 꾸미지 않는다.
+Single user, 3 fixed screens. Express the concept (reduce working memory load)
+**only through layout restraint** — do not decorate with color or animation.
 
-## 원칙 (빅테크 미니멀)
+## Principles (Big-Tech Minimal)
 
-| 측면 | 선택 | 이유 |
+| Aspect | Choice | Reason |
 |---|---|---|
-| 테마 | shadcn `neutral` **디폴트 그대로** (light) | 커스텀 hex 주입·튜닝 시간 0. 이미 "빅테크 룩" |
-| 색 | 뉴트럴 그레이/화이트 + 강조색 1개만(primary) | 결정 부하↓. 상태색은 의미 있을 때만(파괴=red) |
-| 타이포 | 시스템 폰트 스택(또는 Geist/Inter 1종) | 따로 안 깔아도 깔끔. 크기 단계 최소화 |
-| 간격 | 8px 그리드(`gap-4`/`p-6`), 본문 폭 ~640px 컨테이너 | 정렬만 맞으면 "정돈돼" 보임 |
-| 컴포넌트 | shadcn `Card`/`Button`/`Textarea`/`Badge`/`Skeleton` | 복붙 → 손 안 대고 사용 |
+| Theme | shadcn `neutral` **default as-is** (light) | Zero custom hex injection/tuning time. Already "big-tech look" |
+| Color | Neutral gray/white + 1 accent only (primary) | Reduces decision load. Semantic color only when meaningful (destructive=red) |
+| Typography | System font stack (or 1 typeface Geist/Inter) | Clean without extra installation. Minimize size steps |
+| Spacing | 8px grid (`gap-4`/`p-6`), body width ~640px container | Looks organized with alignment alone |
+| Components | shadcn `Card`/`Button`/`Textarea`/`Badge`/`Skeleton` | Copy-paste → use without touching |
 
-규칙: **꾸미지 않는다.** 그라데이션·그림자 남발·커스텀 색 금지. 정렬·여백·타이포 위계만으로 끝낸다.
+Rule: **do not decorate.** No gradients, excessive shadows, custom colors. Alignment, whitespace, and
+typographic hierarchy only.
 
-### 색 (shadcn neutral 기본 토큰 사용 — 직접 hex 안 정함)
+### Color (use shadcn neutral default tokens — no direct hex)
 
-- `background` / `card` / `border` / `muted-foreground` / `foreground` — 토큰 그대로.
-- `primary` = 기본 검정 버튼 1종(주요 액션).
-- 상태 배지: 보관/대기는 `secondary`(회색 배지), 파괴/삭제만 `destructive`(red).
-- verdict 구분도 텍스트+회색 배지로. **별도 색 팔레트를 만들지 않는다.**
+- `background` / `card` / `border` / `muted-foreground` / `foreground` — tokens as-is.
+- `primary` = default black button (1 for primary action).
+- Status badges: parked/waiting use `secondary` (gray badge), destructive/delete only uses `destructive` (red).
+- Verdict distinction also via text+gray badge. **Do not create a separate color palette.**
 
-## 화면별 레이아웃 (단순 카드 + 리스트)
+## Per-Screen Layout (simple cards + lists)
 
-### 1. 인박스 / 캡처
-
-```text
-┌────────────────────────────────────────────┐
-│  Ideas                          [ Dump ▸ ]  │  ← 얇은 상단바(텍스트 링크)
-├────────────────────────────────────────────┤
-│   What's on your mind?                      │
-│   ┌──────────────────────────────────┐      │
-│   │  type an idea…                   │      │  ← Textarea
-│   └──────────────────────────────────┘      │
-│                          [ Drop it ]        │  ← primary 버튼
-│   ── verdict ─────────────────────────      │
-│   │ Actionable now      ·  [keep] [dump]│   │  ← 회색 구분선 + 텍스트
-└────────────────────────────────────────────┘
-```
-
-- 입력 → "Drop it" → verdict가 아래로 **토큰 스트리밍**(이건 유지: SDK가 살아있다는 신호).
-- 로딩: 버튼 `Thinking…` 비활성 + Textarea readonly. 스피너/쉬머 없음.
-- 에러: 입력 아래 작은 회색 배너 *"판정 실패 — 초안 저장됨. 재시도?"* (캡처는 안 막음).
-- 자동 분류 X. 사용자가 `keep`/`dump` 선택(사람 승인 내장).
-
-### 2. 덤프 리스트 (보관 + 사전조사)
+### 1. Inbox / Capture
 
 ```text
-┌────────────────────────────────────────────┐
-│  Dump · 12 parked                           │
-├────────────────────────────────────────────┤
-│ ▸ Rewrite onboarding email      [parked]    │  ← Card + 회색 Badge
-│     AI notes: found 3 templates… (stream)   │
-│ ▸ Try local-first sync lib    [researching] │
-└────────────────────────────────────────────┘
++--------------------------------------------+
+|  Ideas                          [ Dump ▸ ]  |  <- thin top bar (text link)
++--------------------------------------------+
+|   What's on your mind?                      |
+|   +----------------------------------+      |
+|   |  type an idea…                   |      |  <- Textarea
+|   +----------------------------------+      |
+|                          [ Drop it ]        |  <- primary button
+|   -- verdict --------------------------     |
+|   | Actionable now      ·  [keep] [dump]|   |  <- gray divider + text
++--------------------------------------------+
 ```
 
-- 단일 스크롤, 접히는 Card. 접힘=제목+회색 배지, 펼침=AI 노트.
-- 리스트 로딩: `Skeleton` 카드 3개.
-- 항목별 에러는 그 카드 안에 *"리서치 일시정지. 재개?"* 로 격리.
+- Input → "Drop it" → verdict appears below via **token streaming** (keep: SDK "alive" signal).
+- Loading: button `Thinking…` disabled + Textarea readonly. No spinner/shimmer.
+- Error: small gray banner below input *"Judgment failed — draft saved. Retry?"* (capture not blocked).
+- No auto-classification. User selects `keep`/`dump` (built-in human approval).
 
-### 3. 제안 패널 (지금 해볼만?)
+### 2. Dump List (parked + pre-research)
 
 ```text
-┌────────────────────────────────────────────┐
-│  Worth doing now?                           │
-├────────────────────────────────────────────┤
-│   ┌──────────────────────────────────┐      │
-│   │  Rewrite onboarding email        │      │
-│   │  Why now: low effort, unblocks…  │      │  ← 근거 스트리밍
-│   │        [ Not now ]  [ Let's do it ]│    │  ← 사람 승인
-│   └──────────────────────────────────┘      │
-│            1 of 3                            │
-└────────────────────────────────────────────┘
++--------------------------------------------+
+|  Dump · 12 parked                           |
++--------------------------------------------+
+| ▸ Rewrite onboarding email      [parked]    |  <- Card + gray Badge
+|     AI notes: found 3 templates… (stream)   |
+| ▸ Try local-first sync lib    [researching] |
++--------------------------------------------+
 ```
 
-- 큰 Card 1장 + "1 of 3" 텍스트 페이저(점·스와이프 애니 없음).
-- `Let's do it`(primary) → 책상으로 이동. `Not now` → 다음.
-- 빈 상태: *"지금은 제안 없음."* (담백하게, 호흡 점 같은 장식 없음).
+- Single scroll, collapsible Cards. Collapsed=title+gray badge, expanded=AI notes.
+- List loading: 3 `Skeleton` cards.
+- Per-item errors isolated inside that card as *"Research paused. Resume?"*
 
-## 빌드 스택 (변경 없음 — 더 빨라짐)
+### 3. Suggestion Panel (worth doing now?)
 
-**Tailwind + shadcn/ui, `neutral` 디폴트 테마 그대로.**
+```text
++--------------------------------------------+
+|  Worth doing now?                           |
++--------------------------------------------+
+|   +----------------------------------+      |
+|   |  Rewrite onboarding email        |      |
+|   |  Why now: low effort, unblocks…  |      |  <- rationale streaming
+|   |        [ Not now ]  [ Let's do it ]|    |  <- human approval
+|   +----------------------------------+      |
+|            1 of 3                            |
++--------------------------------------------+
+```
 
-1. `Vite + React + Tailwind` 베이스.
-2. `npx shadcn@latest init` → **base color `neutral`, 팔레트 커스터마이즈 안 함.**
+- 1 large Card + "1 of 3" text pager (no dot/swipe animation).
+- `Let's do it` (primary) → move to desk. `Not now` → next.
+- Empty state: *"No suggestions right now."* (plain, no animated dots or decoration).
+
+## Build Stack (unchanged — faster now)
+
+**Tailwind + shadcn/ui, `neutral` default theme as-is.**
+
+1. `Vite + React + Tailwind` base.
+2. `npx shadcn@latest init` → **base color `neutral`, no palette customization.**
 3. `npx shadcn@latest add card button textarea badge skeleton`.
 
-회피: 커스텀 hex 테마, 작업기억 미터, 스와이프 덱, 그라데이션 빈 상태 등 **전부 컷.**
+Avoid: custom hex theming, working memory meter, swipe decks, gradient empty states — **all cut.**
 
-## 남긴 "와우" 포인트 (저비용·고효과 2개만)
+## Kept "Wow" Points (2 only — low cost, high impact)
 
-1. **토큰 스트리밍** — 모든 verdict/근거. "라이브 AI"로 읽혀 SDK 깊이를 보여줌(심사 25%).
-2. **한 번에 하나** 제안 카드 — 사람이 결정하는 페이싱(책임감 있는 AI, 심사 6%).
+1. **Token streaming** — all verdicts/rationale. Reads as "live AI," shows SDK depth (25% score).
+2. **One at a time** suggestion card — human-paced decision (responsible AI, 6% score).
 
-> 미터·색 시맨틱·스와이프 등은 **무리**라 제외. 시간이 남으면 마지막에만 검토.
+> Meter, color semantics, swipe, etc. are **cut**. Review last only if time remains.
 
-## 일러스트 액센트 — Xiaohei(小黑) DNA
+## Illustration Accent — Xiaohei (小黑) DNA
 
-빅테크 미니멀의 "담백함"이 자칫 밋밋해지지 않도록, **단 한 군데**(주로 빈 상태/히어로)에
-Xiaohei 라인아트를 넣는다. 출처: [.github/skills.nouse/flat-black-and-white-illustrations](../../.github/skills.nouse/flat-black-and-white-illustrations/references/style-dna.md).
-shadcn neutral과 충돌하지 않는다 — **둘 다 흰 배경 + 절제 + 여백** DNA라 그대로 합쳐진다.
+To prevent the "plainness" of big-tech minimal from feeling blank, add **one spot** (primarily
+empty state/hero) of Xiaohei line art. Source: [.github/skills.nouse/flat-black-and-white-illustrations](../../.github/skills.nouse/flat-black-and-white-illustrations/references/style-dna.md).
+Does not conflict with shadcn neutral — **both share white background + restraint + whitespace** DNA.
 
-**스타일 규칙(그대로 준수):**
+**Style rules (follow exactly):**
 
-- 순수 흰 배경. off-white·그라데이션·그림자·텍스처·빈티지 종이 느낌 금지.
-- 검정 손그림 라인아트(얇고 살짝 흔들리는 선, 벡터·두꺼운 아웃라인 아님).
-- 넉넉한 여백(주제 40–60%, 빈 공간 ≥35%), 손글씨 주석 5–8개·각 2–6단어.
-- 이미지 1장 = 핵심 동작/구조/상태/은유 1개. 구조 타입명을 화면에 적지 않음.
+- Pure white background. No off-white, gradients, shadows, textures, vintage paper.
+- Black hand-drawn line art (thin, slightly wobbly lines — not vector or thick outlines).
+- Generous whitespace (subject 40-60%, empty space ≥35%), handwritten annotations 5-8, each 2-6 words.
+- 1 image = 1 core action/structure/state/metaphor. Do not write structure type names on screen.
 
-**색은 극도로 절제(라인아트는 검정, 강조만):**
+**Color: extreme restraint (line art is black, accent only):**
 
-| 색 | 용도 | 우리 앱 매핑 |
+| Color | Usage | App mapping |
 |---|---|---|
-| 검정 | 라인아트·캐릭터·구조·본문 | 기본 |
-| 오렌지 | 흐름·경로·자동화 A→B | 캡처→판정→덤프→제안 핸드오프 |
-| 빨강 | 핵심 주석·문제·경고·결과 | 에러 배너, "착수 막힘" 경고 |
-| 파랑 | 내부/시스템 상태·AI 힌트 | AI verdict·사전조사("AI가 대신 조사 중") |
+| Black | Line art · characters · structure · body | Default |
+| Orange | Flow · paths · automation A→B | Capture→judgment→dump→suggestion handoff |
+| Red | Key annotations · problems · warnings · results | Error banners, "blocked" warnings |
+| Blue | Internal/system state · AI hints | AI verdict · pre-research ("AI is researching") |
 
-**Xiaohei = 작업의 주체(장식 아님).** 검은 콩 모양 + 흰 점 눈, 무표정·진지한데 약간 엉뚱한
-"시스템 운영자". 제거해도 은유가 멀쩡하면 너무 장식적인 것 → 다시 그린다.
+**Xiaohei = subject of the work (not decoration).** Black bean shape + white dot eyes, expressionless
+but slightly quirky "system operator." If removing it leaves the metaphor intact, it's too decorative → redraw.
 
-**우리 앱에서 쓸 자리(2–3컷, 한 컷이면 충분):**
+**Spots to use in our app (2-3 panels, 1 is enough):**
 
-- 빈 덤프 상태: Xiaohei가 빈 책상/구멍 앞에서 멀뚱 — *"nothing on your plate."*
-- 사전조사 중: Xiaohei가 전선을 당겨 정보원을 끌어모음(파랑 힌트) — *"AI is digging."*
-- 판정 게이트: Xiaohei가 기계 안에서 "judgment" 레버를 당김(오렌지 흐름) — 히어로/about.
+- Empty dump state: Xiaohei stares at an empty desk/hole — *"nothing on your plate."*
+- Pre-research in progress: Xiaohei pulls wires to gather information sources (blue hint) — *"AI is digging."*
+- Judgment gate: Xiaohei pulls a "judgment" lever inside a machine (orange flow) — hero/about.
 
-금지: 귀여운 마스코트·아동 일러스트·PPT 인포그래픽·정식 플로차트·복잡한 배경.
-시간 압박 시 **빈 상태 1컷만** 넣고 끝낸다(나머지는 컷).
+Prohibited: cute mascots, children's illustrations, PPT infographics, formal flowcharts, complex backgrounds.
+Under time pressure, **put in just the empty state panel** and stop (cut the rest).
 
-## 스코프 & 예산 (~40분 UI, 기존보다 단축)
+## Scope & Budget (~40 min UI, shorter than before)
 
-- [ ] (5m) shadcn init(neutral 디폴트) + max-width 컨테이너 + 상단바 셸
-- [ ] (10m) 화면1: Textarea + 버튼 + verdict 카드 + 스트리밍/로딩/에러
-- [ ] (10m) 화면2: 접히는 Card 리스트 + Skeleton + 항목별 에러
-- [ ] (10m) 화면3: 단일 제안 Card + "1 of 3" + 승인/기각
-- [ ] (5m) 빈 상태 + 간격/대비 최종 패스
-- [ ] (선택, 시간 남으면) Xiaohei 빈 상태 일러스트 1컷(흑백 라인아트 SVG/PNG)
+- [ ] (5m) shadcn init (neutral default) + max-width container + top bar shell
+- [ ] (10m) Screen 1: Textarea + button + verdict card + streaming/loading/error
+- [ ] (10m) Screen 2: Collapsible Card list + Skeleton + per-item errors
+- [ ] (10m) Screen 3: Single suggestion Card + "1 of 3" + approve/reject
+- [ ] (5m) Empty states + spacing/contrast final pass
+- [ ] (optional, time permitting) Xiaohei empty state illustration (black-white line art SVG/PNG)
 
-뒤처지면 컷 순서: Xiaohei 일러스트 → 화면3 페이저 텍스트화 → 화면2 펼치기 정적화 → 스트리밍을 단발 응답으로.
+If falling behind, cut in order: Xiaohei illustration → screen 3 pager to text → screen 2 expand to static → streaming to single response.

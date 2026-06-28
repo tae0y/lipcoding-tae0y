@@ -1,10 +1,17 @@
-'바이브코딩' 대회에서 '개인생산성향상'을 위한 아이디에이션
-'생산성'이 커진만큼 생산량이 많아졌지만,
-우리는 인간이 한 번에 처리할 데이터의 양이 한정되어 있다는 것을 기억해야한다.
-추상화하더라도 한번에 최대 다섯개까지의 작업기억을 유지할 수 있고,
-그외에는 모두 '덤프'에 보관해두었다가 '적절한 시기'에 꺼내야한다.
-이를 위해 사용자가 아이디어를 내놓으면 '지금 착수 가능한지'판단하여 덤프로 보낸다.
-덤프에 쌓여있으면 스스로 사람을 대신해 조사하고 미리 준비를 해두고,
-다만 사람의 능력을 보존하기 위하여 계획하고 기존 지식과 통합 등은 사람에게 맡긴다.
-그래서 적절한 시기에, 사용자의 부하가 낮아졌을때 새로운 일을 해볼 수 있게 제안한다.
-이를통해 사람의 작업기억 부하를 줄이면서도, 적절한 순간에 AI의 도움을 받으면서도, 인간의 역량을 보존.
+# Ideation — Personal Productivity for a Voice-Coding Competition
+
+Productivity has grown, but so has output volume. We must remember that the amount
+of data a human brain can process at once is limited.
+
+Even with abstraction, working memory can hold at most five items at a time.
+Everything beyond that must be stored in a "dump" and retrieved at the "right moment".
+
+To support this, when a user drops an idea, the system judges whether it can be
+started right now. If not, it is sent to the dump. While sitting in the dump, the
+AI pre-researches on the user's behalf and prepares context — but planning,
+integrating with existing knowledge, and making decisions are left to the human,
+to preserve human capability.
+
+At the right moment — when the user's load is low — a single new task is proposed.
+This reduces working memory load, provides AI assistance at the optimal moment,
+and preserves human agency.

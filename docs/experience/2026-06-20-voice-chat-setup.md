@@ -1,13 +1,15 @@
-# 보이스챗 초기 설정 경험 (2026-06-20)
+# Voice Chat Initial Setup Experience (2026-06-20)
 
-스포일러·보이스챗 등 초기 설정을 직접 해보며 겪은 점을 기록한다.
+Notes on what was encountered while setting up voice chat and related tooling.
 
-## 가장 큰 허들
+## Biggest Hurdle
 
-- 하네스(harness)와 스킬을 설치하는 단계가 진입 장벽으로 가장 컸다.
-- 설치 이후에는 **한국어 음성 인식 자체**가 문제였다.
+- Installing the harness and skills was the steepest entry barrier.
+- After installation, **Korean speech recognition itself** became the main problem.
 
-## 음성 인식 문제
+## Speech Recognition Problem
 
-- 한국어를 제대로 알아듣지 못하는 경우가 잦았다.
-- 예: "컴퓨터"라고 말했더니 "커뮤니티"로만 인식했다.
+- Korean was frequently misrecognized.
+- Example: saying "commit" was transcribed as "computer" or "community" (similar Korean pronunciation).
+- English technical terms spoken with Korean phonetics are a weak point for STT — verify and correct
+  such words manually after transcription.

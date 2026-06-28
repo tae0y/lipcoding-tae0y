@@ -1,38 +1,38 @@
-# 대회 제출: push 안 한 커밋 해시를 제출해 invalid 처리된 사건 (2026-06-20)
+# Competition Submission: Unpushed Commit Hash Marked Invalid (2026-06-20)
 
-대회 제출 폼에 **로컬에만 있던(아직 public 원격에 push되지 않은)** 커밋 해시를 입력해
-검증에서 invalid 처리되어 소중한 제출 기회를 날린 사건을 기록한다.
+Recording how submitting a commit hash that existed **only locally (not yet pushed to the
+public remote)** caused it to be rejected as invalid by the verification system, wasting a
+precious submission attempt.
 
-## 증상
+## Symptom
 
-- AI가 알려준 커밋 해시 자체는 정확했다(로컬 `git rev-parse HEAD` 기준 일치).
-- 그 해시를 제출했는데 채점/검증 시스템에서 **invalid(존재하지 않는 커밋)** 로 거부됨.
+- The commit hash the AI provided was correct (matched local `git rev-parse HEAD`).
+- Submitting that hash was rejected by the scoring/verification system as **invalid (commit does not exist)**.
 
-## 원인
+## Cause
 
-- 해당 커밋이 **로컬에는 있지만 public 원격(GitHub)에는 아직 push되지 않은** 상태였다.
-- 채점 시스템은 공개 원격 저장소에서 해시를 조회하므로, 로컬에만 있는 커밋은
-  "존재하지 않는 커밋"으로 보여 invalid가 된다.
-- AI는 로컬 기준으로 정직하게 해시를 알려줬을 뿐, "이게 원격에 올라가 있는가"는
-  별개의 사실이었다. 그 갭을 사람이 확인하지 못했다.
+- The commit was **present locally but had not yet been pushed to the public remote (GitHub)**.
+- The scoring system looks up the hash in the public remote repository — a commit that exists
+  only locally appears as "non-existent" and is rejected as invalid.
+- The AI reported the hash honestly based on local state; the gap between local and remote
+  was the person's check to make, not the AI's.
 
-## 해결 / 다음부터 할 것
+## Fix / What to Do Next Time
 
-제출 직전 체크리스트(반드시 순서대로):
+Pre-submission checklist (must follow in order):
 
-1. `git push` (또는 `git push origin <branch>`) — 먼저 원격에 올린다.
-2. push 성공 확인: `git status`가 `Your branch is up to date with 'origin/...'` 인지.
-3. **원격에 그 해시가 실제로 있는지 검증**:
-   - `git ls-remote origin | grep <hash>` 또는
-   - `git branch -r --contains <hash>` 결과가 있는지.
-   - 가능하면 GitHub 웹에서 `https://github.com/<owner>/<repo>/commit/<hash>` 가
-     200으로 열리는지 직접 확인.
-4. 그 다음에야 제출 폼에 해시를 입력한다.
+1. `git push` (or `git push origin <branch>`) — push to remote first.
+2. Confirm push succeeded: check `git status` shows `Your branch is up to date with 'origin/...'`.
+3. **Verify the hash actually exists on the remote**:
+   - `git ls-remote origin | grep <hash>`, or
+   - `git branch -r --contains <hash>` returns a result.
+   - When possible, verify directly on GitHub: `https://github.com/<owner>/<repo>/commit/<hash>` opens with 200.
+4. Only then enter the hash in the submission form.
 
-## 메모
+## Notes
 
-- "해시가 맞다" ≠ "원격에 올라가 있다". 제출 검증은 **public 원격 기준**임을 항상 전제.
-- AI가 알려주는 해시는 로컬 HEAD 기준일 수 있으니, 제출용이라면 **push 여부와 원격
-  존재 여부를 사람이 직접 한 번 더 확인**할 것.
-- 타임드 대회에서는 이 한 번의 실수가 곧 기회 상실로 직결된다. 제출 전 push→검증을
-  근육기억으로.
+- "The hash is correct" ≠ "it's on the remote." Submission verification is **based on the public remote**.
+- A hash the AI provides is the local HEAD — always **personally verify push status and remote
+  existence** before submitting.
+- In a timed competition, a single mistake like this directly means lost opportunity. Make push→verify
+  a muscle memory habit before submission.

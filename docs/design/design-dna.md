@@ -1,149 +1,151 @@
-# 떠올림 디자인 DNA — "Quiet Glass / Color Halftone"
+# Tteoolim Design DNA — "Quiet Glass / Color Halftone"
 
-> 작성: 2026-06-21 · 대상: v0.0.2 UI 대대적 개편
-> 근거: 초기 구상 [../ideation/README.md](../ideation/README.md) · 레퍼런스 [../assets/](../assets)
-> 백로그 3단계 [../plan/reimplementation-backlog.md](../plan/reimplementation-backlog.md) 와 연결.
-> 개편 화면 시안: [./ui-redesign-ascii.md](./ui-redesign-ascii.md)
+> Created: 2026-06-21 · Target: v0.0.2 major UI overhaul
+> Basis: initial concept [../ideation/README.md](../ideation/README.md) · references [../assets/](../assets)
+> Linked to backlog stage 3 [../plan/reimplementation-backlog.md](../plan/reimplementation-backlog.md).
+> Redesign screen mockup: [./ui-redesign-ascii.md](./ui-redesign-ascii.md)
 
-이 문서는 **무엇을 예쁘게 만들지**가 아니라, **초기 아이디어(작업기억 부하 감소)를
-어떻게 시각 언어로 번역할지**를 정의한다. 모든 비주얼 결정은 컨셉에서 파생되어야 한다.
-
----
-
-## 1. 한 문장 정의
-
-> **"머릿속을 비우는 도구는, 화면도 비어 있어야 한다."**
-> 떠올림은 *고요한 유리(Quiet Glass)* 위에 떠오르는 생각을 담는다. AI의 사전조사는
-> 유리 뒤 *번지는 색(Color Halftone)* 레이어로 조용히 머물고, 사람은 한 번에 **하나의
-> 결정**만 내린다.
+This document defines not **what to make pretty**, but **how to translate the initial idea
+(reduce working memory load) into a visual language**. Every visual decision must derive from
+the concept.
 
 ---
 
-## 2. 컨셉 → 비주얼 번역 (핵심)
+## 1. One-Sentence Definition
 
-초기 구상의 5가지 명제를 시각 규칙으로 1:1 매핑한다. **이 표가 DNA의 본체다.**
+> **"A tool that empties the mind must have an empty screen."**
+> Tteoolim holds thoughts that surface on *Quiet Glass*. The AI's pre-research quietly
+> lives on a *Color Halftone* layer behind the glass, and the human makes **one decision**
+> at a time.
 
-| 초기 구상 명제 | 시각 번역 (DNA 규칙) |
+---
+
+## 2. Concept → Visual Translation (Core)
+
+Five propositions from the initial concept mapped 1:1 to visual rules. **This table is the
+body of the DNA.**
+
+| Initial Concept Proposition | Visual Translation (DNA Rule) |
 |---|---|
-| "한 번에 최대 다섯 개의 작업기억" | **5칸 게이지** — 지금 앞에 둔 항목 수를 항상 보이게. 6번째는 자동으로 흐려지며 덤프로 밀려남. 한 화면의 *초점 요소 ≤ 5* |
-| "그 외에는 모두 '덤프'에 보관" | 덤프는 **유리 뒤 반투명 레이어** — 존재하되 시선을 끌지 않음(낮은 명도·blur·작은 타이포) |
-| "AI가 스스로 사전조사" | 사전조사 진행은 **번지는 색 오브(halftone orb)** 의 느린 호흡 애니메이션 + 토큰 스트리밍. 스피너 금지 |
-| "사람이 계획·통합·결정" | **단일 결정 카드** — 강한 타이포 위계 + 명확한 버튼 2개(`해볼게요` / `다음에`). 한 번에 하나 |
-| "부하 낮은 적절한 시기에 제안" | **무드(분위기)로 타이밍을 전달** — 새벽빛 파스텔 그라데이션 배경, 압박 없는 여백, 부드러운 모션 |
+| "Up to five items in working memory at once" | **5-slot gauge** — always show the count of items currently in focus. The 6th item fades and is pushed to the dump automatically. *Focus elements per screen ≤ 5* |
+| "Everything else is stored in the dump" | Dump is a **semi-transparent layer behind the glass** — present but not drawing the eye (low brightness · blur · small type) |
+| "AI pre-researches on its own" | Pre-research progress is a **slow-breathing Color Halftone orb** animation + token streaming. Spinners prohibited |
+| "Human does the planning, integration, decision" | **Single decision card** — strong typographic hierarchy + two clear buttons (`Let's try` / `Later`). One at a time |
+| "Suggest at the right time when load is low" | **Convey timing through mood (atmosphere)** — dawn pastel gradient background, unrushed whitespace, soft motion |
 
-> 규칙 위반 = 컨셉 위반. "예쁘니까" 요소를 더하는 것은 작업기억 부하를 늘리는 행위다.
-
----
-
-## 3. 무드보드 — 레퍼런스 자산 해부
-
-[../assets/](../assets) 의 이미지를 두 갈래로 읽었다.
-
-### 3.1 UI 구조 레퍼런스 (직접 차용)
-
-- **`2026-06-21 20.58.05.png` — 리퀴드 글래스 카드**
-  서리 낀 반투명 카드, 둥근 모서리, 안쪽 상단 하이라이트, 부드러운 외곽 글로우,
-  카드 안에 인라인 버튼/슬라이더/큰 액션 버튼. → **우리의 카드/입력/버튼 표면 언어.**
-- **`20260621_203241.jpg` — 미니멀 화이트 카드(강한 타이포)**
-  소문자 캡스 eyebrow 라벨 → 큰 볼드 타이틀 → 스파크라인 → `match` 알약 배지 →
-  태그 행 → 설명 문단 → 액션 버튼 2개(채움 1 + 어두움 1). 하프톤 점 배경.
-  → **단일 결정 카드의 정보 위계 템플릿.**
-
-### 3.2 무드·팔레트 레퍼런스 (분위기 차용)
-
-- 파스텔 하늘의 토성 + 꽃밭(`20260621_202425.jpg`) → **새벽빛 그라데이션 배경.**
-- 겹쳐진 반투명 색 원(`20260621_170126.jpg`) → **Color Halftone 오브**(multiply 블렌드).
-- 디더링 세리프 타이포(`20260617_204932.jpg`) → **세리프 디스플레이 악센트 + 미세 그레인.**
-- 빈티지 기하 트레이드마크(`HLHIq43...jpeg`) → **단순·기하학적 아이콘 톤.**
+> Rule violation = concept violation. Adding elements because they look nice increases working memory load.
 
 ---
 
-## 4. 디자인 토큰
+## 3. Moodboard — Reference Asset Analysis
 
-### 4.1 배경 (Atmosphere)
+The images in [../assets/](../assets) were read in two categories.
+
+### 3.1 UI Structure References (direct adoption)
+
+- **`2026-06-21 20.58.05.png` — Liquid Glass Card**
+  Frosted semi-transparent card, rounded corners, inset top highlight, soft outer glow,
+  inline buttons/sliders/large action button inside the card. → **Our card/input/button surface language.**
+- **`20260621_203241.jpg` — Minimal White Card (strong typography)**
+  Lowercase-caps eyebrow label → large bold title → sparkline → `match` pill badge →
+  tag row → description paragraph → 2 action buttons (filled 1 + dark 1). Halftone dot background.
+  → **Information hierarchy template for the single decision card.**
+
+### 3.2 Mood / Palette References (atmosphere borrowing)
+
+- Saturn in pastel sky + flower field (`20260621_202425.jpg`) → **Dawn-light gradient background.**
+- Overlapping semi-transparent colored circles (`20260621_170126.jpg`) → **Color Halftone orbs** (multiply blend).
+- Dithered serif typography (`20260617_204932.jpg`) → **Serif display accent + fine grain.**
+- Vintage geometric trademark (`HLHIq43...jpeg`) → **Simple, geometric icon tone.**
+
+---
+
+## 4. Design Tokens
+
+### 4.1 Background (Atmosphere)
 
 ```text
-레이어 0  새벽빛 파스텔 그라데이션 (peach → lilac → mist)
-레이어 1  Color Halftone 오브 2~3개, 큰 반투명 원, multiply, 느린 부유(float)
-레이어 2  미세 디더/그레인 (opacity ~4%) — 디지털 평면감 제거
-레이어 3  콘텐츠 (글래스 카드)
+Layer 0  Dawn-light pastel gradient (peach → lilac → mist)
+Layer 1  Color Halftone orbs 2-3, large semi-transparent circles, multiply, slow float
+Layer 2  Fine dither/grain (opacity ~4%) — removes digital flatness
+Layer 3  Content (glass cards)
 ```
 
-- 기본 색조: 다크가 아니라 **에어리(airy)** 로 전환 검토. 단, 현행 다크 글래스 자산도
-  유효하므로 §6에서 라이트/다크 결정 필요.
+- Default tone: considering a switch from dark to **airy** (light). However, existing dark glass
+  assets remain valid — light/dark decision required in §6.
 
-### 4.2 표면 (Glass)
+### 4.2 Surface (Glass)
 
-| 토큰 | 값(제안) | 용도 |
+| Token | Value (proposed) | Usage |
 |---|---|---|
-| `--glass-fill` | `rgba(255,255,255,0.08)` | 카드/입력 배경 |
-| `--glass-border` | `rgba(255,255,255,0.40)` | 1px 테두리 |
-| `--glass-hi` | `inset 0 1px 0 rgba(255,255,255,0.30)` | 상단 안쪽 하이라이트 |
-| `--glass-glow` | `0 12px 44px -16px rgba(0,0,0,0.25)` | 부드러운 외곽 글로우 |
-| `--blur` | `backdrop-blur-md` (12px) | 서리 효과 |
-| radius | 카드 `20px`, 배지/버튼 `pill` | 둥근 유리 |
+| `--glass-fill` | `rgba(255,255,255,0.08)` | Card/input background |
+| `--glass-border` | `rgba(255,255,255,0.40)` | 1px border |
+| `--glass-hi` | `inset 0 1px 0 rgba(255,255,255,0.30)` | Top inset highlight |
+| `--glass-glow` | `0 12px 44px -16px rgba(0,0,0,0.25)` | Soft outer glow |
+| `--blur` | `backdrop-blur-md` (12px) | Frosted effect |
+| radius | card `20px`, badge/button `pill` | Rounded glass |
 
-### 4.3 색 (절제 + 의미색)
+### 4.3 Color (restraint + semantic color)
 
-- **중립 글래스 베이스** + **악센트 1개**(브랜드 레드 `#e8252a` 유지) + **의미색만**:
-  - 준비/성공 `#02d95c`, 파괴/위험 `#e8252a`.
-- Halftone 오브 팔레트(배경 전용, 콘텐츠 색 아님): cyan·magenta·yellow 저채도.
-- 금지: 그라데이션 텍스트, 5색 이상 동시 노출, 의미 없는 색 강조.
+- **Neutral glass base** + **1 accent** (brand red `#e8252a` retained) + **semantic colors only**:
+  - Ready/success `#02d95c`, destructive/danger `#e8252a`.
+- Halftone orb palette (background only, not content color): low-saturation cyan, magenta, yellow.
+- Prohibited: gradient text, 5+ colors simultaneously, meaningless color emphasis.
 
-### 4.4 타이포
+### 4.4 Typography
 
-| 역할 | 글꼴/스타일 |
+| Role | Font/Style |
 |---|---|
-| 본문·UI | Pretendard Variable (현행 유지) |
-| eyebrow 라벨 | 11px, `uppercase`, `tracking-widest`, 저명도 |
-| 초점 타이틀 | 28~36px, `font-extrabold`, `tracking-tight` |
-| 디스플레이 악센트 | 세리프 1종(히어로/빈 상태에만, 절제) |
+| Body / UI | Pretendard Variable (keep current) |
+| Eyebrow label | 11px, `uppercase`, `tracking-widest`, low brightness |
+| Focus title | 28-36px, `font-extrabold`, `tracking-tight` |
+| Display accent | 1 serif typeface (hero/empty states only, use sparingly) |
 
-### 4.5 모션
+### 4.5 Motion
 
-- **토큰 스트리밍** = 살아있는 AI 신호(유지, 핵심 "와우").
-- Halftone 오브 **느린 부유**(20~30s), 카드 **부드러운 페이드/라이즈**.
-- 금지: 스피너, 튀는 바운스, 스와이프 덱.
+- **Token streaming** = live AI signal (keep, core "wow").
+- Halftone orb **slow float** (20-30s), card **soft fade/rise**.
+- Prohibited: spinners, bouncy animations, swipe decks.
 
 ---
 
-## 5. 컴포넌트 DNA (203241 카드 템플릿)
+## 5. Component DNA (203241 Card Template)
 
-단일 결정 카드는 항상 이 위계를 따른다.
+The single decision card always follows this hierarchy:
 
 ```text
-eyebrow 라벨 (소문자 캡스, 트래킹)        ← 맥락: "이번 주 · AI 제안"
-초점 타이틀 (큰 볼드)                      ← 아이디어 한 줄
-[ match 88% ]  ← 알약 배지               ← 관심사 연관도(스파크라인 옆)
-#부하낮음  #사전조사  #관심사연관          ← 근거 태그(알약)
-설명 문단 (저명도, 2~3줄)                  ← AI 한 줄 요약
-[ 해볼게요 ]   [ 다음에 ]                   ← 액션: 채움 primary + 글래스 secondary
+eyebrow label (lowercase caps, tracking)        <- context: "this week · AI pick"
+focus title (large bold)                         <- idea in one line
+[ match 88% ]  <- pill badge                    <- interest relevance (next to sparkline)
+#low-load  #pre-researched  #interest-relevant  <- rationale tags (pills)
+description paragraph (low brightness, 2-3 lines) <- AI one-line summary
+[ Let's try ]   [ Later ]                       <- action: filled primary + glass secondary
 ```
 
-- 입력/버튼/배지 모두 **글래스 표면 언어** 공유(§4.2).
-- 작업기억 5칸 게이지는 상단 고정 또는 인박스 헤더에 상주.
+- Input/buttons/badges all share **glass surface language** (§4.2).
+- The 5-slot working memory gauge lives in the top bar or inbox header.
 
 ---
 
-## 6. 열린 결정 (개편 착수 전 합의 필요)
+## 6. Open Decisions (must be resolved before starting the overhaul)
 
-1. **라이트 vs 다크** — 자산은 라이트(203241) + 비비드 글래스(글래스카드) 혼재.
-   현행은 다크 글래스. 새벽빛 에어리(라이트)로 전환할지, 다크 유지할지.
-2. **악센트 색** — 브랜드 레드 유지 vs 파스텔 무드에 맞춘 쿨톤 보조 악센트 추가.
-3. **세리프 악센트 범위** — 히어로/빈 상태 한정 vs 전 타이틀.
-4. **배경 강도** — 비비드 이미지(나비/토성) vs 절제된 파스텔 그라데이션
-   (작업기억 보호 원칙상 후자 권장).
+1. **Light vs Dark** — assets mix light (203241) + vivid glass (glass card). Current is dark glass.
+   Switch to dawn-light airy (light) or keep dark?
+2. **Accent color** — retain brand red vs add a cool-tone secondary accent to match pastel mood.
+3. **Serif accent scope** — hero/empty state only vs all titles.
+4. **Background intensity** — vivid image (butterfly/saturn) vs restrained pastel gradient
+   (latter recommended per working memory protection principle).
 
-> 위 4개는 [./ui-redesign-ascii.md](./ui-redesign-ascii.md) 시안에 가정으로 반영했으며,
-> 합의 후 토큰·코드에 확정 반영한다.
+> All four are reflected as assumptions in [./ui-redesign-ascii.md](./ui-redesign-ascii.md).
+> Finalize in tokens and code after agreement.
 
 ---
 
-## 7. DNA 체크리스트 (구현 시 자문)
+## 7. DNA Checklist (ask when implementing)
 
-- [ ] 이 화면의 초점 요소가 5개 이하인가?
-- [ ] 한 화면에 사용자가 내릴 결정이 하나뿐인가?
-- [ ] 덤프/사전조사는 시선을 끌지 않는 뒷 레이어에 있는가?
-- [ ] 추가한 장식이 컨셉(부하 감소)을 해치지 않는가?
-- [ ] 색은 악센트 1 + 의미색만 쓰는가?
-- [ ] AI 진행은 토큰 스트리밍/호흡 오브로 표현했는가(스피너 금지)?
+- [ ] Does this screen have 5 or fewer focus elements?
+- [ ] Is there only one decision the user makes on this screen?
+- [ ] Is the dump/pre-research on a back layer that doesn't draw the eye?
+- [ ] Does any added decoration undermine the concept (load reduction)?
+- [ ] Is color limited to 1 accent + semantic colors only?
+- [ ] Is AI progress expressed via token streaming / breathing orb (no spinner)?

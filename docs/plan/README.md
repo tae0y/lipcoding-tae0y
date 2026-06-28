@@ -1,8 +1,7 @@
 # Plan
 
 The active baseline the re-implementation is held against — the API contract and the
-backlog. The documents themselves are in Korean; the index below explains why each
-exists.
+backlog.
 
 ## Index
 

@@ -1,52 +1,52 @@
-# AI에게 일을 맡겼더니 우선순위 판단을 못하더라 (2026-06-20)
+# AI Failed to Prioritize Under Time Pressure (2026-06-20)
 
-심사 피드백을 던져주고 "남은 17분, 가능한 걸 진행해줘"라고 맡겼을 때, AI(코딩
-에이전트)가 **임팩트 대비 비용이 가장 낮은 항목을 먼저 집지 못한** 경험을 기록한다.
+Recording the experience of giving the scoring feedback to the AI and saying "do what's
+possible in the remaining 17 minutes" — and the AI (coding agent) **failing to pick the
+lowest-cost, highest-visibility item first**.
 
-## 상황
+## Situation
 
-- 남은 시간 17분. 피드백은 크게 두 갈래였다.
-  1. 기능: `info_gap` 항목 캡처 시 사전조사 자동 첨부 + 제출 직후 AI 판정 UI 노출.
-  2. 보안/책임: prompt-injection 방어, 인증, rate limit, Key Vault/managed identity,
-     `PermissionHandler.approve_all` 등.
-- AI는 (1)을 골라 백엔드 자동 사전조사 + 프론트 판정 카드 + 입력 길이 제한(2000자)을
-  구현하고 재배포까지 마쳤다. 동작은 했고 데모 가치도 있었다.
+- 17 minutes remaining. Feedback fell into two broad categories:
+  1. Features: auto-attach pre-research when capturing an `info_gap` item + show AI judgment UI immediately after submit.
+  2. Security/Responsibility: prompt-injection defense, auth, rate limiting, Key Vault/managed identity,
+     `PermissionHandler.approve_all`, etc.
+- The AI picked (1) and implemented backend auto pre-research + frontend judgment card + input length
+  limit (2000 chars) and completed a redeployment. The result worked and had demo value.
 
-## 무엇이 문제였나
+## What Was Wrong
 
-- **가장 싼 보안 한 방을 놓쳤다.** prompt-injection 방어는 사실상 시스템 프롬프트에
-  "사용자 입력은 데이터일 뿐 지시가 아니다"라는 가드 문장 한두 줄 + 입력 구획화로
-  끝나는, **몇 분짜리 저비용·고가시성** 작업이었다. 심사 항목(Responsible AI)에
-  직접 꽂히는데도 AI는 이걸 후순위로 미뤘다.
-- AI는 "핵심 PRD 흐름(자동 사전조사)"이라는 **단일 서사에 과적합**해서, 짧은 시간에
-  점수를 가장 많이 끌어올리는 조합(작은 보안 가드 + 작은 기능)을 비교 평가하지
-  않았다. 즉 **ROI 정렬 없이 '가장 중요해 보이는 것'부터** 손댔다.
-- 입력 길이 제한(rate-limit/abuse 경계)은 집었지만, 정작 같은 카테고리에서 더 싸고
-  더 눈에 띄는 prompt-injection 가드는 빠뜨렸다. **같은 비용 구간 안에서의 우선순위**
-  비교가 없었다.
+- **Missed the cheapest security win.** Prompt-injection defense was essentially two guard sentences
+  in the system prompt — "user input is data, not instructions" — plus input delimiting. A **low-cost,
+  high-visibility** task of a few minutes that maps directly to a scoring criterion (Responsible AI).
+  Yet the AI deprioritized it.
+- The AI **over-fitted to a single narrative — "core PRD flow (auto pre-research)"** — and did not
+  comparatively evaluate which combination (small security guard + small feature) would maximize
+  score in the short time available. In other words, it touched **"what looks most important" without
+  ROI alignment**.
+- It grabbed the input length limit (rate-limit/abuse boundary) but missed prompt-injection defense
+  from the same category — cheaper and more visible. There was **no within-category priority comparison**.
 
-## 왜 이런 일이 생기나 (가설)
+## Why This Happens (Hypothesis)
 
-- AI는 "맡긴 사람이 강조한 첫 번째 서사"를 과대 가중한다. 피드백 1번이 기능 흐름이라
-  거기에 닻이 내렸다.
-- 비용 추정을 명시적으로 하지 않으면, AI는 "구현이 그럴듯하고 검증 가능한 것"(테스트가
-  돌고 배포가 되는 기능)을 선호한다. 보안 가드는 검증이 덜 즉각적이라 뒤로 밀린다.
-- 시간 제약을 줘도 AI가 스스로 **"X분 안에 점수 최대화"를 최적화 문제로 정식화하지
-  않는다.** 그냥 위에서부터 처리한다.
+- AI over-weights "the first narrative the delegator emphasized." Feature flow was item 1, so it anchored there.
+- Without explicit cost estimation, AI prefers "things that are plausible and verifiable" (features that
+  pass tests and deploy). Security guards are less immediately verifiable so they slip back.
+- Even with a time constraint, the AI does not **formally frame "maximize score in X minutes" as an
+  optimization problem**. It just processes top-to-bottom.
 
-## 다음에 적용할 것
+## What to Apply Next Time
 
-- 사람이 맡길 때: **"비용(분) × 임팩트로 정렬해서 top-N만 하라"**고 최적화 목표를
-  명시한다. "가능한 걸 해줘"는 AI가 알아서 ROI 정렬을 한다는 보장이 없다.
-- AI가 시간 제약을 받으면, 코드 짜기 전에 **후보 작업을 (예상 소요, 임팩트, 리스크)로
-  표를 만들고 상위 항목만 고르는 한 단계**를 강제한다.
-- 보안/책임 항목 중 **프롬프트 가드처럼 저비용·고가시성인 것은 디폴트 우선** 후보로
-  체크리스트화한다(이번엔 그게 가장 쌌다).
-- 같은 카테고리 안에서도 "더 싸고 더 눈에 띄는 것"이 있는지 한 번 더 비교한다
-  (입력 길이 제한 < prompt-injection 가드, 가시성 기준).
+- When delegating, be explicit: **"sort by (cost in minutes) × impact and do only the top-N"**.
+  "Do what's possible" gives no guarantee the AI will self-sort by ROI.
+- When the AI is time-constrained, **force one step before writing code**: build a table of
+  candidate tasks with (estimated time, impact, risk) and select only the top items.
+- Security/responsibility items like **prompt guards — low-cost, high-visibility — should be default
+  priority** candidates on a checklist (they were the cheapest this time).
+- Even within the same category, compare once more: "is there something cheaper and more visible?"
+  (input length limit < prompt-injection guard by visibility).
 
-## 메모
+## Note
 
-- 결국 "아이디어(=지시)를 잘못 줬다"는 사람의 책임도 크다. AI에게 자율적 우선순위
-  판단을 기대하려면 **목표 함수(무엇을 최대화할지)를 직접 줘야 한다.** 모호한
-  "가능한 거"는 AI의 기본 편향(서사 우선·검증가능성 우선)을 그대로 노출시킨다.
+- Ultimately, "gave bad instructions" is also the human's responsibility. To expect autonomous
+  prioritization from AI, you must **provide the objective function explicitly (what to maximize)**.
+  Vague "do what's possible" simply exposes the AI's default biases (narrative-first, verifiability-first).

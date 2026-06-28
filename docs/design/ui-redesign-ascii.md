@@ -1,181 +1,182 @@
-# 떠올림 개편 데모 — ASCII 시안 (v0.0.2)
+# Tteoolim Redesign Demo — ASCII Mockup (v0.0.2)
 
-> 작성: 2026-06-21 · 디자인 DNA [./design-dna.md](./design-dna.md) 기반
-> 초기 구상 [../ideation/README.md](../ideation/README.md) · 누락 아이디어 복원
-> [../plan/reimplementation-backlog.md](../plan/reimplementation-backlog.md) (1단계) 반영.
+> Created: 2026-06-21 · Based on Design DNA [./design-dna.md](./design-dna.md)
+> Initial concept [../ideation/README.md](../ideation/README.md) · missing ideas restored
+> [../plan/reimplementation-backlog.md](../plan/reimplementation-backlog.md) (stage 1) applied.
 
-이 문서는 픽셀이 아니라 **정보 위계와 흐름**을 보여준다. 색·블러·글로우는 글래스 표면
-(DNA §4.2)로 입혀지지만, ASCII에서는 `▒`(반투명 글래스), `◍`(halftone 오브),
-`▓`(채움 버튼)으로만 표기한다.
+This document shows **information hierarchy and flow**, not pixels. Color, blur, and glow
+are applied as glass surface (DNA §4.2), but in ASCII they are represented only as
+`▒` (semi-transparent glass), `◍` (halftone orb), `▓` (filled button).
 
 ```text
-범례
-  ▒▒▒  글래스 카드 표면(서리·반투명)        ◍   color halftone 오브(배경)
-  ▓▓▓  primary 채움 버튼                    ░   덤프(뒷 레이어, 저명도)
-  ●●●○○ 작업기억 5칸 게이지(채움/빈칸)        ~   토큰 스트리밍(살아있는 AI)
+Legend
+  ▒▒▒  glass card surface (frosted · semi-transparent)   ◍   color halftone orb (background)
+  ▓▓▓  primary filled button                              ░   dump (back layer, low brightness)
+  ●●●○○ 5-slot working memory gauge (filled/empty)         ~   token streaming (live AI)
 ```
 
 ---
 
-## 0. 공통 셸 — 배경 + 상단바 + 5칸 게이지
+## 0. Common Shell — Background + Top Bar + 5-Slot Gauge
 
-전 화면 공통. 배경엔 새벽빛 그라데이션 + 부유하는 halftone 오브, 상단바엔
-**작업기억 5칸 게이지**가 상주한다(초기 구상 "최대 다섯 개" 복원, 백로그 1.1).
+Shared across all screens. The background shows dawn-light gradient + floating halftone orbs;
+the top bar always shows the **5-slot working memory gauge** (restoring initial concept "max five,"
+backlog 1.1).
 
 ```text
    ◍                                                  ◍
         ╔══════════════════════════════════════════════╗
-        ║  떠올림                         ● ● ● ○ ○  3/5 ║  ← 5칸 게이지 상주
-        ║  ─ 담기 ──── 추천·인박스 ──── 설정 ─          ║
+        ║  Tteoolim                       ● ● ● ○ ○  3/5 ║  ← 5-slot gauge always present
+        ║  ─ Capture ── Recommend·Inbox ── Settings ─    ║
         ╚══════════════════════════════════════════════╝
               ◍                              ◍
 ```
 
-- 게이지 `● ● ● ○ ○` = 지금 앞에 둔 항목 3개. **6번째를 담으면** 가장 오래된 항목이
-  흐려지며 덤프로 밀려난다(시각적 강제, DNA §2).
+- Gauge `● ● ● ○ ○` = 3 items currently in focus. **Adding a 6th** causes the oldest item
+  to fade and be pushed to the dump (visual enforcement, DNA §2).
 
 ---
 
-## 1. 담기 (Capture) — "머릿속을 비우는 한 줄"
+## 1. Capture — "Empty the Mind in One Line"
 
 ```text
         ╔══════════════════════════════════════════════╗
-        ║  떠올림                         ● ● ● ○ ○  3/5 ║
+        ║  Tteoolim                       ● ● ● ○ ○  3/5 ║
         ╚══════════════════════════════════════════════╝
 
-          지금 떠오른 생각, 한 줄로.            ← 세리프 디스플레이 악센트
-          담아두고 머릿속을 비우세요.
+          One thought, surfacing now.                 ← serif display accent
+          Drop it and clear your head.
 
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-        ▒  여기에 떠오른 생각을…                      ▒  ← 글래스 입력
-        ▒                                            ▒
-        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ [ 담기 ▓ ]
+        ▒  what's on your mind…                          ▒  ← glass input
+        ▒                                                ▒
+        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ [ Drop it ▓ ]
 
-        ─ AI 판정 ───────────────────────────────────
+        ─ AI judgment ───────────────────────────────────
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-        ▒  ✅ 바로 착수 가능 — 인박스로                ▒
-        ▒  "온보딩 이메일 다시 쓰기"                   ▒
-        ▒  ~ 관련 템플릿 3개를 찾는 중…                ▒  ← 토큰 스트리밍
-        ▒                              [ 인박스 보기 → ]▒
+        ▒  ✅ Ready to start — moving to inbox              ▒
+        ▒  "Rewrite the onboarding email"                  ▒
+        ▒  ~ finding 3 related templates…                  ▒  ← token streaming
+        ▒                              [ View inbox → ]    ▒
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
-판정 분기(카드 헤더만 바뀜):
+Judgment branches (only the card header changes):
 
 ```text
-  ✅ 바로 착수 가능 — 인박스로        (게이지에 ○ 한 칸 채워짐)
-  🔎 정보가 더 필요해요 — 덤프(사전조사)  ◍ 오브가 호흡하며 AI 조사 시작
-  🌙 지금은 여유 부족 — 덤프(나중에)     ░ 조용히 뒷 레이어로
+  ✅ Ready to start — inbox             (gauge ○ fills one slot)
+  🔎 More info needed — dump (research)  ◍ orb breathes, AI research begins
+  🌙 Not enough capacity now — dump      ░ quietly moves to back layer
 ```
 
-> 변경점: "오늘 상태(기분·저녁·할일)" 블록은 담기 화면에서 빼고 **설정/인박스 헤더로
-> 이동**(담기 화면의 초점 요소를 줄여 작업기억 보호, DNA §7).
+> Change: the "today's state (mood · evening · tasks)" block is removed from the Capture screen
+> and **moved to Settings/Inbox header** (reduces focus elements on Capture, protects working memory, DNA §7).
 
 ---
 
-## 2. 인박스 (Inbox) — "한 번에 하나의 결정"
+## 2. Inbox — "One Decision at a Time"
 
-상단 = 단일 결정 카드(203241 템플릿), 중단 = 5칸 인박스, 하단 = 덤프(뒷 레이어).
+Top = single decision card (203241 template), middle = 5-slot inbox, bottom = dump (back layer).
 
 ```text
         ╔══════════════════════════════════════════════╗
-        ║  떠올림                         ● ● ● ○ ○  3/5 ║
+        ║  Tteoolim                       ● ● ● ○ ○  3/5 ║
         ╚══════════════════════════════════════════════╝
-        ▒ 현재 상태 | ☀️ 화창 · ✅ 저녁 비었음           ▒  ← 부하 게이트 요약
+        ▒ Current status | ☀️ clear · ✅ evening free       ▒  ← load gate summary
 
-        ── 이번 주 · AI 제안 ─────────────────────────   ← eyebrow 라벨
+        ── this week · AI pick ───────────────────────────   ← eyebrow label
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-        ▒  THIS WEEK · AI PICK                        ▒
-        ▒                                             ▒
-        ▒  온보딩 이메일 다시 쓰기          [ match 88% ]▒  ← 초점 타이틀 + 알약
-        ▒  ▁▂▃▅▇  관심사 연관 ↑                        ▒  ← 스파크라인
-        ▒                                             ▒
-        ▒  #부하낮음   #사전조사완료   #관심사연관       ▒  ← 근거 태그(알약)
-        ▒  ~ 지난주 메모와 겹쳐 지금이 적기예요.        ▒  ← AI 한 줄(스트리밍)
-        ▒                                             ▒
-        ▒      [ 해볼게요 ▓ ]      [ 다음에 ]           ▒  ← 결정 2개(사람이)
+        ▒  THIS WEEK · AI PICK                           ▒
+        ▒                                                ▒
+        ▒  Rewrite the onboarding email    [ match 88% ] ▒  ← focus title + pill
+        ▒  ▁▂▃▅▇  interest relevance ↑                   ▒  ← sparkline
+        ▒                                                ▒
+        ▒  #low-load  #pre-researched  #interest-relevant▒  ← rationale tags (pills)
+        ▒  ~ overlaps last week's note — timing is right. ▒  ← AI one-line (streaming)
+        ▒                                                ▒
+        ▒      [ Let's try ▓ ]      [ Later ]            ▒  ← 2 decisions (human)
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-                                              1 / 3      ← 한 번에 하나
+                                              1 / 3         ← one at a time
 
-        ── 지금 앞에 둔 것 ─────────────────  ● ● ● ○ ○
+        ── currently in focus ──────────────  ● ● ● ○ ○
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-        ▒  • 온보딩 이메일 다시 쓰기              [ × ]▒
-        ▒  • 로컬 우선 동기화 라이브러리 검토      [ × ]▒
-        ▒  • API 응답 캐싱 정리                   [ × ]▒
-        ▒  ○ ○  (2칸 비어 있음 — 더 담을 수 있어요)    ▒
+        ▒  • Rewrite the onboarding email          [ × ] ▒
+        ▒  • Review local-first sync library        [ × ] ▒
+        ▒  • Clean up API response caching          [ × ] ▒
+        ▒  ○ ○  (2 slots free — room for more)            ▒
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 
-        ░ 덤프 · 12개 보관 ─────────────────────────── ░  ← 뒷 레이어(저명도)
-        ░  ▸ 뉴스레터 자동화          [사전조사 완료] ░
-        ░     ◍ AI 노트: 도구 3종 비교… (펼치기)       ░
-        ░  ▸ 발표자료 템플릿 개편      [여유 부족]    ░
-        ░  ▸ 사이드 프로젝트 회고      ◍ 조사 중 ~     ░
+        ░ Dump · 12 parked ─────────────────────────── ░  ← back layer (low brightness)
+        ░  ▸ Newsletter automation      [research done] ░
+        ░     ◍ AI notes: comparing 3 tools… (expand)   ░
+        ░  ▸ Presentation template overhaul [low capacity] ░
+        ░  ▸ Side project retrospective   ◍ researching ~ ░
 ```
 
-핵심 흐름:
+Core flow:
 
-- **결정 카드는 항상 1장** → 처리하면 다음(`1/3 → 2/3`)으로 호흡(작업기억 페이싱).
-- 인박스는 **5칸 상한** → 가득 차면 새 제안의 `해볼게요`가 잠기고 "한 칸 비우세요" 안내.
-- 덤프는 회색·작게 → AI 사전조사가 끝나면 `[사전조사 완료]` 배지만 조용히 점등.
+- **Decision card is always 1** → processing it moves to next (`1/3 → 2/3`) with a breath (working memory pacing).
+- Inbox has a **5-slot cap** → when full, `Let's try` on a new suggestion is locked with "free a slot" guidance.
+- Dump is gray and small → when AI pre-research completes, only `[research done]` badge quietly lights up.
 
 ---
 
-## 3. 설정 (Settings) — "적절한 시기 + 오늘 상태"
+## 3. Settings — "Right Timing + Today's State"
 
-부하 게이트(기분·저녁) + 주간 트리거를 한곳에. 압박 없는 여백.
+Load gate (mood · evening) + weekly trigger in one place. Unrushed whitespace.
 
 ```text
         ╔══════════════════════════════════════════════╗
-        ║  떠올림                         ● ● ● ○ ○  3/5 ║
+        ║  Tteoolim                       ● ● ● ○ ○  3/5 ║
         ╚══════════════════════════════════════════════╝
 
-        ── 오늘 상태 ─────────────────────────────────
+        ── today's state ────────────────────────────────
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-        ▒  기분    [ 😶 안개 ] [ 🌊 잔잔 ] [ ☀️ 화창 ▓ ]▒
-        ▒  저녁    [ ✅ 비었음 ▓ ]   (끄면 = 약속 있음)  ▒
+        ▒  Mood    [ 😶 foggy ] [ 🌊 calm ] [ ☀️ clear ▓ ] ▒
+        ▒  Evening [ ✅ free ▓ ]   (off = have plans)      ▒
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 
-        ── 주간 추천 시각 ────────────────────────────
+        ── weekly suggestion time ───────────────────────
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-        ▒   [ 금요일 ▾ ]   [ 18:30 ]                   ▒
-        ▒   ◍ 퇴근 + 20~30분 버퍼 권장                 ▒
+        ▒   [ Friday ▾ ]   [ 18:30 ]                       ▒
+        ▒   ◍ recommended: after work + 20-30 min buffer   ▒
         ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
-- 부하 게이트(`저녁 비었음 & 기분 ≠ 안개`)가 충족돼야 인박스 제안이 활성(백로그 1.5).
-- 주간 트리거 = 실제 스케줄 배치의 사용자 설정(백로그 1.3과 연결).
+- Load gate (`evening free & mood ≠ foggy`) must be satisfied for inbox suggestions to activate (backlog 1.5).
+- Weekly trigger = user config for the actual scheduled batch (linked to backlog 1.3).
 
 ---
 
-## 4. 데모 흐름 (1분 시연 스크립트)
+## 4. Demo Flow (1-minute script)
 
 ```text
-[담기]   "온보딩 이메일 다시 쓰기" 입력 → 담기
-         → ✅ 판정 + ~토큰 스트리밍, 게이지 ○→● 한 칸 채워짐
-[담기]   "뉴스레터 자동화" 입력 → 🔎 정보 필요 → 덤프로,
-         ◍ 오브 호흡하며 AI 사전조사 자동 시작
-[인박스] 단일 제안 카드 1/3 → #사전조사완료 태그 확인 → [해볼게요]
-         → 다음 제안 2/3로 호흡
-[인박스] 5칸 가득 → 6번째 담기 시 가장 오래된 항목이 ░ 덤프로 흐려짐
-[설정]   기분 ☀️ + 저녁 ✅ → 부하 게이트 충족 → 제안 활성
+[Capture]  enter "Rewrite the onboarding email" → Drop it
+           → ✅ judgment + ~ token streaming, gauge ○ fills one slot
+[Capture]  enter "Newsletter automation" → 🔎 more info needed → to dump,
+           ◍ orb breathes, AI pre-research starts automatically
+[Inbox]    single suggestion card 1/3 → confirm #research-done tag → [Let's try]
+           → breaths to next suggestion 2/3
+[Inbox]    5 slots full → adding 6th causes oldest item to fade ░ to dump
+[Settings] mood ☀️ + evening ✅ → load gate satisfied → suggestions activated
 ```
 
-> 이 시연은 초기 구상의 4축(작업기억 보호 · 자동 사전조사 · 사람 결정 · 적절한 시기)을
-> 한 흐름에서 모두 노출한다.
+> This demo exposes all four pillars of the initial concept in one flow:
+> working memory protection · automatic pre-research · human decision · right timing.
 
 ---
 
-## 5. 현행 대비 변경 요약
+## 5. Change Summary vs Current
 
-| 영역 | 현행 (v0.0.1 다크 글래스) | 개편 (v0.0.2 Quiet Glass) |
+| Area | Current (v0.0.1 dark glass) | Redesign (v0.0.2 Quiet Glass) |
 |---|---|---|
-| 배경 | 다크 + bg.jpg 오버레이 | 새벽빛 파스텔 + halftone 오브 + 그레인 |
-| 작업기억 | UX 강제 없음(무제한) | **5칸 게이지 상주 + 6번째 자동 덤프** |
-| 담기 화면 | 입력 + 오늘 상태 혼재 | 입력 + 판정만(초점 축소), 상태는 설정으로 |
-| 제안 카드 | 근거 3행 리스트 | **203241 템플릿**: eyebrow·타이틀·match·태그·액션 |
-| 덤프 | 인박스와 동급 명도 | **뒷 레이어**(저명도·작게) |
-| 사전조사 | 텍스트 진행 | ◍ 호흡 오브 + 토큰 스트리밍 |
-| 색 | 화이트/레드 | 글래스 중립 + 악센트 1 + 의미색(녹/적) |
+| Background | Dark + bg.jpg overlay | Dawn-light pastel + halftone orbs + grain |
+| Working memory | No UX enforcement (unlimited) | **5-slot gauge always present + 6th auto-dump** |
+| Capture screen | Input + today's state mixed | Input + judgment only (narrowed focus), state to Settings |
+| Suggestion card | 3-line rationale list | **203241 template**: eyebrow · title · match · tags · action |
+| Dump | Same brightness as inbox | **Back layer** (low brightness · small) |
+| Pre-research | Text progress | ◍ breathing orb + token streaming |
+| Color | White/red | Glass neutral + 1 accent + semantic (green/red) |
 
-> 미해결 결정 4건(라이트/다크, 악센트 색, 세리프 범위, 배경 강도)은
-> [./design-dna.md](./design-dna.md) §6 참조. 합의 후 토큰·코드에 확정.
+> 4 unresolved decisions (light/dark, accent color, serif scope, background intensity):
+> see [./design-dna.md](./design-dna.md) §6. Finalize in tokens/code after agreement.
