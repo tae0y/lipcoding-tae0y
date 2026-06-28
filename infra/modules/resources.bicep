@@ -62,7 +62,7 @@ param aoaiDeployment string = 'gpt-4o'
 param aoaiModelName string = 'gpt-4o'
 
 @description('Azure OpenAI 모델 버전')
-param aoaiModelVersion string = '2024-11-20'
+param aoaiModelVersion string = '2024-08-06'
 
 @description('Azure OpenAI 배포 용량 (1000 TPM 단위). eastus2 Standard 쿼터 주의(한도 50, cap ~30)')
 @minValue(1)

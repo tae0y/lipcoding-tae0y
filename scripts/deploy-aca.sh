@@ -24,7 +24,7 @@ LOCATION="${LOCATION:-eastus2}"
 ACR_NAME="${ACR_NAME:-lipcoding$(date +%s | tail -c5)}"  # 기본: 타임스탬프 접미어
 APP_NAME="${APP_NAME:-lipcoding-api}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
-BICEP_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/infra/main.bicep"
+BICEP_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/infra/modules/resources.bicep"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

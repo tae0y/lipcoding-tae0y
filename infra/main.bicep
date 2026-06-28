@@ -26,7 +26,7 @@ param aoaiDeployment string = 'gpt-4o'
 param aoaiModelName string = 'gpt-4o'
 
 @description('Azure OpenAI model version')
-param aoaiModelVersion string = '2024-11-20'
+param aoaiModelVersion string = '2024-08-06'
 
 @description('Azure OpenAI TPM capacity (1000 TPM units)')
 @minValue(1)
