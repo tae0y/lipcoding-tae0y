@@ -6,7 +6,7 @@ import {
     runWeeklyTrigger,
 } from "../lib/api";
 
-export function useSuggestion() {
+export function useSuggestion(enabled: boolean = true) {
     const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -40,6 +40,7 @@ export function useSuggestion() {
     }, []);
 
     useEffect(() => {
+        if (!enabled) return;
         let active = true;
         (async () => {
             setLoading(true);
@@ -63,7 +64,7 @@ export function useSuggestion() {
         return () => {
             active = false;
         };
-    }, []);
+    }, [enabled]);
 
     const decide = useCallback(
         async (decision: SuggestionDecision) => {

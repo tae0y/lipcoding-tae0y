@@ -9,7 +9,7 @@ import {
 
 export const UNDO_WINDOW_MS = 10_000;
 
-export function useIdeas() {
+export function useIdeas(enabled: boolean = true) {
     const [inboxIdeas, setInboxIdeas] = useState<Idea[]>([]);
     const [dumpIdeas, setDumpIdeas] = useState<Idea[]>([]);
     const [loading, setLoading] = useState(true);
@@ -43,6 +43,7 @@ export function useIdeas() {
     }, []);
 
     useEffect(() => {
+        if (!enabled) return;
         let active = true;
         (async () => {
             setLoading(true);
@@ -69,7 +70,7 @@ export function useIdeas() {
         return () => {
             active = false;
         };
-    }, []);
+    }, [enabled]);
 
     const captureIdea = useCallback(
         async (text: string) => {

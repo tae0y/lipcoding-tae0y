@@ -13,6 +13,8 @@ import type { Screen } from "./lib/types";
 
 export default function App() {
     const auth = useAuth();
+    // 인증이 확정되기 전에는 데이터를 조회하지 않는다(401 → stale 에러 방지).
+    const authed = !auth.loading && auth.authenticated;
     const [screen, setScreen] = useState<Screen>("capture");
     const [ideaText, setIdeaText] = useState("");
     const [researchingId, setResearchingId] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export default function App() {
         dismissUndo,
         reload: reloadIdeas,
         loadError: ideasError,
-    } = useIdeas();
+    } = useIdeas(authed);
 
     const {
         userState,
@@ -42,7 +44,7 @@ export default function App() {
         setSchedule,
         error: userStateError,
         reload: reloadUserState,
-    } = useUserState();
+    } = useUserState(authed);
 
     const {
         suggestion,
@@ -50,7 +52,7 @@ export default function App() {
         decide,
         error: suggestionError,
         refresh: refreshSuggestion,
-    } = useSuggestion();
+    } = useSuggestion(authed);
 
     const handleEmotion = useCallback(async (emotion: Parameters<typeof setEmotion>[0]) => {
         await setEmotion(emotion);

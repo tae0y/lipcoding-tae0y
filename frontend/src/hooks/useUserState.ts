@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Emotion, UserState } from "../lib/types";
 import { getUserState, updateUserState } from "../lib/api";
 
-export function useUserState() {
+export function useUserState(enabled: boolean = true) {
     const [userState, setUserState] = useState<UserState | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -18,6 +18,7 @@ export function useUserState() {
     }, []);
 
     useEffect(() => {
+        if (!enabled) return;
         let active = true;
         (async () => {
             setLoading(true);
@@ -40,7 +41,7 @@ export function useUserState() {
         return () => {
             active = false;
         };
-    }, []);
+    }, [enabled]);
 
     const apply = useCallback(
         async (next: UserState, patch: Partial<UserState>) => {
