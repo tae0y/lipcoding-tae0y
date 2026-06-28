@@ -32,7 +32,7 @@ def _provider() -> dict:
         "base_url": os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/"),
         "api_key": os.environ["AZURE_OPENAI_API_KEY"],
         "azure": {
-            "api_version": os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
+            "api_version": os.environ.get("AZURE_OPENAI_API_VERSION", "2025-04-01-preview")
         },
     }
 
@@ -234,7 +234,7 @@ def _azure_research_sync(idea_text: str) -> Research | None:
         client = AzureOpenAI(
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/"),
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21"),
+            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2025-04-01-preview"),
         )
         resp = client.chat.completions.create(
             model=os.environ["AZURE_OPENAI_DEPLOYMENT"],
@@ -243,7 +243,6 @@ def _azure_research_sync(idea_text: str) -> Research | None:
                 {"role": "user", "content": guarded_idea_block(idea_text, context="research-azure")},
             ],
             response_format={"type": "json_object"},
-            temperature=0.4,
         )
         content = resp.choices[0].message.content or ""
         return _research_from_json(content)

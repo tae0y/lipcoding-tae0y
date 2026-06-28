@@ -55,14 +55,14 @@ param createAoai bool = true
 @description('Azure OpenAI 계정 이름 (전역 고유 = custom subdomain). 기존 계정명 재사용 시 멱등 흡수')
 param aoaiAccountName string = 'aoai-${appName}-tae0yp'
 
-@description('Azure OpenAI 배포명 (예: gpt-4o)')
-param aoaiDeployment string = 'gpt-4o'
+@description('Azure OpenAI 배포명 (예: gpt-5-mini)')
+param aoaiDeployment string = 'gpt-5-mini'
 
 @description('Azure OpenAI 모델 이름')
-param aoaiModelName string = 'gpt-4o'
+param aoaiModelName string = 'gpt-5-mini'
 
 @description('Azure OpenAI 모델 버전')
-param aoaiModelVersion string = '2024-08-06'
+param aoaiModelVersion string = '2025-08-07'
 
 @description('Azure OpenAI 배포 용량 (1000 TPM 단위). eastus2 Standard 쿼터 주의(한도 50, cap ~30)')
 @minValue(1)
@@ -70,7 +70,7 @@ param aoaiModelVersion string = '2024-08-06'
 param aoaiCapacity int = 30
 
 @description('Azure OpenAI API 버전')
-param aoaiApiVersion string = '2024-10-21'
+param aoaiApiVersion string = '2025-04-01-preview'
 
 @description('단일 사용자 인증 패스프레이즈 (Key Vault 시크릿으로 보관)')
 @secure()
@@ -145,7 +145,7 @@ resource aoaiModelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2
   parent: aoaiAccount
   name: aoaiDeployment
   sku: {
-    name: 'Standard'
+    name: 'GlobalStandard'
     capacity: aoaiCapacity
   }
   properties: {

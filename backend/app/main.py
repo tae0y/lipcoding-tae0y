@@ -180,7 +180,7 @@ def health_ai() -> dict[str, object]:
     resp = client.chat.completions.create(
         model=os.environ["AZURE_OPENAI_DEPLOYMENT"],
         messages=[{"role": "user", "content": "ping"}],
-        max_tokens=5,
+        max_completion_tokens=16,
     )
     return {"ok": True, "reply": resp.choices[0].message.content}
 

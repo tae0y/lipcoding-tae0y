@@ -29,7 +29,7 @@ def _provider() -> dict:
         "base_url": os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/"),
         "api_key": os.environ["AZURE_OPENAI_API_KEY"],
         "azure": {
-            "api_version": os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
+            "api_version": os.environ.get("AZURE_OPENAI_API_VERSION", "2025-04-01-preview")
         },
     }
 

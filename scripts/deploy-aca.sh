@@ -111,7 +111,7 @@ az deployment group create \
   --parameters \
     acrName="$ACR_NAME" \
     containerImage="$IMAGE" \
-    aoaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}" \
+    aoaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-gpt-5-mini}" \
     appPassphrase="$APP_PASSPHRASE" \
     sessionSecret="$SESSION_SECRET" \
     location="$LOCATION" \

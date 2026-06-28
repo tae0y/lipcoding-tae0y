@@ -81,7 +81,7 @@ def configure_copilot_cli_byok() -> None:
         os.environ.setdefault("COPILOT_PROVIDER_API_KEY", api_key)
     os.environ.setdefault(
         "COPILOT_PROVIDER_AZURE_API_VERSION",
-        os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21"),
+        os.environ.get("AZURE_OPENAI_API_VERSION", "2025-04-01-preview"),
     )
     deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT")
     if deployment:

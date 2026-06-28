@@ -20,13 +20,13 @@ param createAoai bool = true
 param aoaiAccountName string = ''
 
 @description('Azure OpenAI deployment name')
-param aoaiDeployment string = 'gpt-4o'
+param aoaiDeployment string = 'gpt-5-mini'
 
 @description('Azure OpenAI model name')
-param aoaiModelName string = 'gpt-4o'
+param aoaiModelName string = 'gpt-5-mini'
 
 @description('Azure OpenAI model version')
-param aoaiModelVersion string = '2024-08-06'
+param aoaiModelVersion string = '2025-08-07'
 
 @description('Azure OpenAI TPM capacity (1000 TPM units)')
 @minValue(1)
@@ -34,7 +34,7 @@ param aoaiModelVersion string = '2024-08-06'
 param aoaiCapacity int = 30
 
 @description('Azure OpenAI API version')
-param aoaiApiVersion string = '2024-10-21'
+param aoaiApiVersion string = '2025-04-01-preview'
 
 @description('Single-user auth passphrase (stored in Key Vault)')
 @secure()
